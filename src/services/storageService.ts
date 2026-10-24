@@ -163,47 +163,47 @@ export const storageService = {
           updatedAt: typeof ev.updatedAt === 'string' ? ev.updatedAt : new Date().toISOString(),
 
           // Deep arrays with fallbacks
-          budgetItems: Array.isArray(ev.budgetItems) ? ev.budgetItems.map((b: any, bIdx: number) => ({
+          budgetItems: Array.isArray(ev.budgetItems) ? ev.budgetItems.map((b: Record<string, unknown>, bIdx: number) => ({
             id: typeof b.id === 'string' ? b.id : `bi-${bIdx}`,
-            category: typeof b.category === 'string' ? b.category : ('Venue & Rentals' as BudgetCategory),
+            category: typeof b.category === 'string' ? (b.category as BudgetCategory) : ('Venue & Rentals' as BudgetCategory),
             name: typeof b.name === 'string' ? b.name : 'Expense Item',
             estimatedCost: typeof b.estimatedCost === 'number' ? Math.max(0, b.estimatedCost) : 0,
             actualCost: typeof b.actualCost === 'number' ? Math.max(0, b.actualCost) : 0,
             paidCost: typeof b.paidCost === 'number' ? Math.max(0, b.paidCost) : 0,
-            status: ['planned', 'deposit_paid', 'paid_in_full'].includes(b.status) ? b.status : ('planned' as PaymentStatus),
+            status: typeof b.status === 'string' && ['planned', 'deposit_paid', 'paid_in_full'].includes(b.status) ? (b.status as PaymentStatus) : ('planned' as PaymentStatus),
             notes: typeof b.notes === 'string' ? b.notes : ''
           })) : [],
 
-          timelineItems: Array.isArray(ev.timelineItems) ? ev.timelineItems.map((t: any, tIdx: number) => ({
+          timelineItems: Array.isArray(ev.timelineItems) ? ev.timelineItems.map((t: Record<string, unknown>, tIdx: number) => ({
             id: typeof t.id === 'string' ? t.id : `tl-${tIdx}`,
-            phase: ['foundation', 'bookings', 'final_prep', 'day_of'].includes(t.phase) ? t.phase : ('foundation' as TimelinePhase),
+            phase: typeof t.phase === 'string' && ['foundation', 'bookings', 'final_prep', 'day_of'].includes(t.phase) ? (t.phase as TimelinePhase) : ('foundation' as TimelinePhase),
             title: typeof t.title === 'string' ? t.title : 'Milestone Task',
             description: typeof t.description === 'string' ? t.description : '',
             targetDateOrTime: typeof t.targetDateOrTime === 'string' ? t.targetDateOrTime : 'Scheduled',
             completed: Boolean(t.completed),
-            priority: ['high', 'medium', 'low'].includes(t.priority) ? t.priority : 'medium'
+            priority: typeof t.priority === 'string' && ['high', 'medium', 'low'].includes(t.priority) ? (t.priority as 'high' | 'medium' | 'low') : 'medium'
           })) : [],
 
-          vendors: Array.isArray(ev.vendors) ? ev.vendors.map((v: any, vIdx: number) => ({
+          vendors: Array.isArray(ev.vendors) ? ev.vendors.map((v: Record<string, unknown>, vIdx: number) => ({
             id: typeof v.id === 'string' ? v.id : `v-${vIdx}`,
-            category: typeof v.category === 'string' ? v.category : ('Catering & Bar' as BudgetCategory),
+            category: typeof v.category === 'string' ? (v.category as BudgetCategory) : ('Catering & Bar' as BudgetCategory),
             name: typeof v.name === 'string' ? v.name : 'Vendor Partner',
             contactPerson: typeof v.contactPerson === 'string' ? v.contactPerson : 'Lead Coordinator',
             email: typeof v.email === 'string' ? v.email : '',
             phone: typeof v.phone === 'string' ? v.phone : '',
-            status: ['researching', 'contacted', 'quoted', 'booked', 'completed'].includes(v.status) ? v.status : ('researching' as VendorStatus),
+            status: typeof v.status === 'string' && ['researching', 'contacted', 'quoted', 'booked', 'completed'].includes(v.status) ? (v.status as VendorStatus) : ('researching' as VendorStatus),
             quotedCost: typeof v.quotedCost === 'number' ? Math.max(0, v.quotedCost) : 0,
             agreedCost: typeof v.agreedCost === 'number' ? Math.max(0, v.agreedCost) : 0,
             notes: typeof v.notes === 'string' ? v.notes : '',
-            keyQuestions: Array.isArray(v.keyQuestions) ? v.keyQuestions.filter((q: any) => typeof q === 'string') : []
+            keyQuestions: Array.isArray(v.keyQuestions) ? v.keyQuestions.filter((q: unknown): q is string => typeof q === 'string') : []
           })) : [],
 
           personalizedIdeas: ev.personalizedIdeas && typeof ev.personalizedIdeas === 'object' ? {
             themeName: typeof ev.personalizedIdeas.themeName === 'string' ? ev.personalizedIdeas.themeName : 'Custom Aesthetic',
             themeDescription: typeof ev.personalizedIdeas.themeDescription === 'string' ? ev.personalizedIdeas.themeDescription : '',
-            colorPalette: Array.isArray(ev.personalizedIdeas.colorPalette) ? ev.personalizedIdeas.colorPalette.filter((c: any) => c && typeof c.name === 'string' && typeof c.hex === 'string') : [],
+            colorPalette: Array.isArray(ev.personalizedIdeas.colorPalette) ? ev.personalizedIdeas.colorPalette.filter((c: unknown): c is { name: string; hex: string } => typeof c === 'object' && c !== null && 'name' in c && 'hex' in c && typeof (c as Record<string, unknown>).name === 'string' && typeof (c as Record<string, unknown>).hex === 'string') : [],
             activities: Array.isArray(ev.personalizedIdeas.activities) ? ev.personalizedIdeas.activities : [],
-            cateringHighlights: Array.isArray(ev.personalizedIdeas.cateringHighlights) ? ev.personalizedIdeas.cateringHighlights.filter((h: any) => typeof h === 'string') : [],
+            cateringHighlights: Array.isArray(ev.personalizedIdeas.cateringHighlights) ? ev.personalizedIdeas.cateringHighlights.filter((h: unknown): h is string => typeof h === 'string') : [],
             playlistVibe: ev.personalizedIdeas.playlistVibe && typeof ev.personalizedIdeas.playlistVibe === 'object' ? {
               mood: String(ev.personalizedIdeas.playlistVibe.mood || 'Celebratory'),
               sampleTracks: Array.isArray(ev.personalizedIdeas.playlistVibe.sampleTracks) ? ev.personalizedIdeas.playlistVibe.sampleTracks : []
@@ -223,11 +223,11 @@ export const storageService = {
             costSavingTips: []
           },
 
-          guests: Array.isArray(ev.guests) ? ev.guests.map((g: any, gIdx: number) => ({
+          guests: Array.isArray(ev.guests) ? ev.guests.map((g: Record<string, unknown>, gIdx: number) => ({
             id: typeof g.id === 'string' ? g.id : `g-${gIdx}`,
             name: typeof g.name === 'string' ? g.name : 'Guest',
             group: typeof g.group === 'string' ? g.group : 'General',
-            rsvpStatus: ['confirmed', 'declined', 'pending'].includes(g.rsvpStatus) ? g.rsvpStatus : ('pending' as RsvpStatus),
+            rsvpStatus: typeof g.rsvpStatus === 'string' && ['confirmed', 'declined', 'pending'].includes(g.rsvpStatus) ? (g.rsvpStatus as RsvpStatus) : ('pending' as RsvpStatus),
             dietaryNotes: typeof g.dietaryNotes === 'string' ? g.dietaryNotes : 'None',
             plusOnes: typeof g.plusOnes === 'number' ? Math.max(0, g.plusOnes) : 0,
             tableOrZone: typeof g.tableOrZone === 'string' ? g.tableOrZone : 'Unassigned'
@@ -246,8 +246,9 @@ export const storageService = {
         this.saveActiveEventId(validatedEvents[0].id);
       }
       return { success: true, count: validatedEvents.length };
-    } catch (e: any) {
-      return { success: false, error: e.message || 'Malformed JSON string.' };
+    } catch (e: unknown) {
+      const errMsg = e instanceof Error ? e.message : 'Malformed JSON string.';
+      return { success: false, error: errMsg };
     }
   },
 

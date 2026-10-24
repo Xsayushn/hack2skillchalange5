@@ -43,10 +43,7 @@ import {
 import { 
   storageService 
 } from './services/storageService';
-import { 
-  Sparkles, 
-  Bot 
-} from 'lucide-react';
+import { Bot } from 'lucide-react';
 
 export const App: React.FC = () => {
   // Core state
@@ -252,6 +249,7 @@ export const App: React.FC = () => {
           setIsAssistantOpen(false);
           setIsSettingsOpen(true);
         }}
+        initialPrompt={initialAssistantPrompt}
       />
 
       <SettingsModal 

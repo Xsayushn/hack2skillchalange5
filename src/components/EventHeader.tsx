@@ -5,7 +5,6 @@ import {
   Users, 
   Clock, 
   DollarSign, 
-  CheckCircle2, 
   Sparkles,
   PieChart,
   ListTodo,

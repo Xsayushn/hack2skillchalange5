@@ -2,7 +2,7 @@
 
 [![Tests](https://img.shields.io/badge/Vitest-24%20Passed%20(Unit%20%2B%20UI)-emerald.svg)](#-rigorous-automated-test-suite-24-tests)
 [![CI](https://github.com/Xsayushn/hack2skillchalange5/actions/workflows/ci.yml/badge.svg)](https://github.com/Xsayushn/hack2skillchalange5/actions)
-[![TypeScript](https://img.shields.io/badge/TypeScript-Strict%20ES2020-blue.svg)](tsconfig.json)
+[![TypeScript](https://img.shields.io/badge/TypeScript-Strict%20ES2022-blue.svg)](tsconfig.json)
 [![Security](https://img.shields.io/badge/Security-Header%20Auth%20%7C%20Session%20Storage-brightgreen.svg)](#-enterprise-grade-security-architecture)
 [![npm audit](https://img.shields.io/badge/npm%20audit-0%20vulnerabilities-brightgreen.svg)](package.json)
 [![Accessibility](https://img.shields.io/badge/Accessibility-Focus%20Trap%20%7C%20Escape%20%7C%20Reduced%20Motion-purple.svg)](#-accessibility-wcag-21-aa-alignment)
@@ -92,7 +92,7 @@ In response to peer review feedback, security measures were enhanced:
 3. **Strict Model Allowlist:**
    - User-selected or imported model identifiers are validated against an allowlist:
      ```typescript
-     const ALLOWED_MODELS = ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-2.0-flash', 'gemini-2.0-flash-exp'];
+     const ALLOWED_MODELS = ['gemini-1.5-flash', 'gemini-2.0-flash', 'gemini-2.5-flash', 'gemini-3.5-flash', 'gemini-1.5-pro', 'gemini-2.0-flash-exp'];
      ```
    - Prevents arbitrary URL path injection or outdated model failures.
 4. **Deep Schema Validation on JSON Imports:**

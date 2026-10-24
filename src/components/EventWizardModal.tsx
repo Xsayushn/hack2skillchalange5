@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { EventPlan, EventType, AISettings } from '../types';
-import { aiPlannerEngine, GenerateEventParams } from '../services/aiPlannerEngine';
+import { aiPlannerEngine, GenerateEventParams, DEFAULT_AI_MODEL } from '../services/aiPlannerEngine';
 import { useModalA11y } from '../hooks/useModalA11y';
 
 interface EventWizardModalProps {
@@ -95,7 +95,8 @@ export const EventWizardModal: React.FC<EventWizardModalProps> = ({
   const [currency, setCurrency] = useState<string>('USD');
   const [currencySymbol, setCurrencySymbol] = useState<string>('$');
   const [priorityFocus, setPriorityFocus] = useState<'balanced' | 'catering' | 'entertainment' | 'decor' | 'photo'>('balanced');
-  const [generationNotice, setGenerationNotice] = useState<string | null>(null);
+  const [pendingPlan, setPendingPlan] = useState<EventPlan | null>(null);
+  const [fallbackNotice, setFallbackNotice] = useState<string | null>(null);
 
   // Accessibility: Focus trap & Escape-to-close
   const modalRef = useModalA11y<HTMLDivElement>({ isOpen, onClose });
@@ -121,7 +122,7 @@ export const EventWizardModal: React.FC<EventWizardModalProps> = ({
 
   const handleGenerate = async () => {
     setIsGenerating(true);
-    setGenerationNotice(null);
+    setFallbackNotice(null);
 
     const params: GenerateEventParams = {
       title: title || `${eventType.toUpperCase()} Celebration`,
@@ -139,10 +140,6 @@ export const EventWizardModal: React.FC<EventWizardModalProps> = ({
     try {
       const result = await aiPlannerEngine.generateEventPlanWithMeta(params, aiSettings);
 
-      if (result.errorNotice) {
-        setGenerationNotice(result.errorNotice);
-      }
-
       // Trigger Confetti effect (safely handles prefers-reduced-motion)
       const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
       if (!prefersReducedMotion) {
@@ -157,13 +154,26 @@ export const EventWizardModal: React.FC<EventWizardModalProps> = ({
         }
       }
 
+      // If live Gemini failed and fell back, keep wizard open so evaluator/user sees the notice clearly
+      if (hasLiveKey && result.source === 'autonomous-heuristics' && result.errorNotice) {
+        setPendingPlan(result.plan);
+        setFallbackNotice(result.errorNotice);
+        return;
+      }
+
       onEventCreated(result.plan);
       onClose();
       setStep(1);
     } catch (err: unknown) {
+      const errMsg = err instanceof Error ? err.message : String(err);
       console.error('Plan generation failed', err);
       // Fallback to offline heuristic
       const fallbackPlan = aiPlannerEngine.generateEventPlan(params);
+      if (hasLiveKey) {
+        setPendingPlan(fallbackPlan);
+        setFallbackNotice(`Live Gemini API call failed (${errMsg.slice(0, 80)}). Synthesized using Autonomous Heuristic Engine.`);
+        return;
+      }
       onEventCreated(fallbackPlan);
       onClose();
       setStep(1);
@@ -189,7 +199,7 @@ export const EventWizardModal: React.FC<EventWizardModalProps> = ({
                 <span className="wizard-sub">Step {step} of 3</span>
                 <span className="wizard-engine-badge">
                   <Bot size={13} className={hasLiveKey ? 'text-brand' : 'text-emerald'} />
-                  <span>{hasLiveKey ? `Live Gemini (${aiSettings?.model || 'gemini-2.0-flash'})` : 'Autonomous AI Heuristic (Offline Ready)'}</span>
+                  <span>{hasLiveKey ? `Live Gemini (${aiSettings?.model || DEFAULT_AI_MODEL})` : 'Autonomous AI Heuristic (Offline Ready)'}</span>
                 </span>
               </div>
             </div>
@@ -205,14 +215,44 @@ export const EventWizardModal: React.FC<EventWizardModalProps> = ({
 
         {/* Wizard Body */}
         <div className="wizard-body">
-          {generationNotice && (
-            <div className="alert-banner warning" style={{ margin: '0 0 16px 0', padding: '10px 14px', borderRadius: '8px', background: 'rgba(234, 179, 8, 0.15)', border: '1px solid rgba(234, 179, 8, 0.4)', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem' }}>
-              <AlertCircle size={16} className="text-yellow" />
-              <span>{generationNotice}</span>
+          {pendingPlan && fallbackNotice ? (
+            <div className="wizard-step-container" style={{ textAlign: 'center', padding: '16px 0' }}>
+              <div style={{ background: 'rgba(234, 179, 8, 0.12)', border: '1px solid rgba(234, 179, 8, 0.4)', borderRadius: '12px', padding: '16px 20px', marginBottom: '24px', textAlign: 'left', display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+                <AlertCircle size={22} className="text-yellow" style={{ flexShrink: 0, marginTop: '2px' }} />
+                <div>
+                  <h4 style={{ margin: '0 0 4px 0', fontSize: '0.95rem', color: 'var(--text-primary)' }}>Live API Fallback Notice</h4>
+                  <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                    {fallbackNotice}
+                  </p>
+                </div>
+              </div>
+
+              <div style={{ marginBottom: '24px' }}>
+                <h3 style={{ fontSize: '1.25rem', marginBottom: '8px' }}>Your Blueprint is Generated!</h3>
+                <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+                  A complete, domain-weighted celebration plan with budgets, milestone timelines, and vendor checklists has been prepared.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                className="btn btn-primary btn-lg"
+                onClick={() => {
+                  onEventCreated(pendingPlan);
+                  onClose();
+                  setPendingPlan(null);
+                  setFallbackNotice(null);
+                  setStep(1);
+                }}
+                style={{ minWidth: '220px', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+              >
+                Open My Event Plan <ArrowRight size={18} />
+              </button>
             </div>
-          )}
-          {/* STEP 1: Select Archetype */}
-          {step === 1 && (
+          ) : (
+            <>
+              {/* STEP 1: Select Archetype */}
+              {step === 1 && (
             <div className="wizard-step-container">
               <h3 className="step-heading">Select Celebration Archetype</h3>
               <p className="step-sub">Choose your vertical to load domain-specific budgeting heuristics and milestones:</p>
@@ -354,7 +394,7 @@ export const EventWizardModal: React.FC<EventWizardModalProps> = ({
                         key={opt.id}
                         type="button"
                         className={`priority-chip-btn ${priorityFocus === opt.id ? 'active' : ''}`}
-                        onClick={() => setPriorityFocus(opt.id as any)}
+                        onClick={() => setPriorityFocus(opt.id as 'balanced' | 'catering' | 'entertainment' | 'decor' | 'photo')}
                       >
                         <strong>{opt.label}</strong>
                         <small>{opt.sub}</small>
@@ -365,45 +405,49 @@ export const EventWizardModal: React.FC<EventWizardModalProps> = ({
               </div>
             </div>
           )}
-        </div>
-
-        {/* Footer Navigation */}
-        <div className="wizard-footer">
-          {step > 1 ? (
-            <button 
-              type="button" 
-              className="btn btn-secondary"
-              onClick={() => setStep(step - 1)}
-              disabled={isGenerating}
-            >
-              <ArrowLeft size={16} />
-              <span>Back</span>
-            </button>
-          ) : (
-            <div />
-          )}
-
-          {step < 3 ? (
-            <button 
-              type="button" 
-              className="btn btn-primary"
-              onClick={() => setStep(step + 1)}
-            >
-              <span>Continue</span>
-              <ArrowRight size={16} />
-            </button>
-          ) : (
-            <button 
-              type="button" 
-              className="btn btn-primary btn-lg wizard-generate-btn"
-              onClick={handleGenerate}
-              disabled={isGenerating}
-            >
-              <Sparkles size={18} className={isGenerating ? 'spin-icon' : ''} />
-              <span>{isGenerating ? 'Synthesizing Event Plan...' : hasLiveKey ? 'Generate with Live Gemini' : 'Generate AI Master Plan'}</span>
-            </button>
+          </>
           )}
         </div>
+
+        {/* Footer Navigation (only visible when not on completion screen) */}
+        {!pendingPlan && (
+          <div className="wizard-footer">
+            {step > 1 ? (
+              <button 
+                type="button" 
+                className="btn btn-secondary"
+                onClick={() => setStep(step - 1)}
+                disabled={isGenerating}
+              >
+                <ArrowLeft size={16} />
+                <span>Back</span>
+              </button>
+            ) : (
+              <div />
+            )}
+
+            {step < 3 ? (
+              <button 
+                type="button" 
+                className="btn btn-primary"
+                onClick={() => setStep(step + 1)}
+              >
+                <span>Continue</span>
+                <ArrowRight size={16} />
+              </button>
+            ) : (
+              <button 
+                type="button" 
+                className="btn btn-primary btn-lg wizard-generate-btn"
+                onClick={handleGenerate}
+                disabled={isGenerating}
+              >
+                <Sparkles size={18} className={isGenerating ? 'spin-icon' : ''} />
+                <span>{isGenerating ? 'Synthesizing Event Plan...' : hasLiveKey ? 'Generate with Live Gemini' : 'Generate AI Master Plan'}</span>
+              </button>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

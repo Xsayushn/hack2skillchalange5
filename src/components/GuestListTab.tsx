@@ -1,14 +1,9 @@
 import React, { useState } from 'react';
 import { 
-  UserCheck, 
-  Users, 
-  UserX, 
-  Clock, 
   Plus, 
   Trash2, 
   Sparkles, 
   Utensils, 
-  MapPin,
   Filter
 } from 'lucide-react';
 import { EventPlan, Guest, RsvpStatus } from '../types';
@@ -42,7 +37,6 @@ export const GuestListTab: React.FC<GuestListTabProps> = ({
   const confirmedCount = guests.filter(g => g.rsvpStatus === 'confirmed').reduce((acc, g) => acc + 1 + g.plusOnes, 0);
   const declinedCount = guests.filter(g => g.rsvpStatus === 'declined').length;
   const pendingCount = guests.filter(g => g.rsvpStatus === 'pending').reduce((acc, g) => acc + 1 + g.plusOnes, 0);
-  const totalHeads = confirmedCount + pendingCount;
 
   // Dietary Restrictions Aggregation
   const dietaryItems = guests

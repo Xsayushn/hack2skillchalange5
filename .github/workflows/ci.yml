@@ -27,6 +27,9 @@ jobs:
       - name: Run Vitest test suite
         run: npm run test
 
+      - name: Run ESLint
+        run: npm run lint
+
       - name: Compile TypeScript & build bundle
         run: npm run build
 

@@ -1,8 +1,5 @@
 import React from 'react';
 import { 
-  DollarSign, 
-  Clock, 
-  Handshake, 
   Sparkles, 
   CheckCircle2, 
   Circle, 

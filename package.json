@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
+    "lint": "eslint src",
     "start": "vite preview",
     "preview": "vite preview",
     "test": "vitest run",
@@ -19,6 +20,7 @@
     "vite": "^6.2.0"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.2.0",
     "@types/canvas-confetti": "^1.9.0",
@@ -26,8 +28,10 @@
     "@types/react": "^19.0.10",
     "@types/react-dom": "^19.0.4",
     "@vitejs/plugin-react": "^4.3.4",
+    "eslint": "^10.13.0",
     "jsdom": "^26.0.0",
     "typescript": "^5.7.3",
+    "typescript-eslint": "^8.72.0",
     "vitest": "^5.0.5"
   }
 }

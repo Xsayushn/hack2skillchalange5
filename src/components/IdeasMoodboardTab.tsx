@@ -7,22 +7,20 @@ import {
   Music, 
   UtensilsCrossed, 
   MessageSquare, 
-  Gift, 
   Lightbulb, 
-  Smile, 
-  Plus
+  Smile
 } from 'lucide-react';
 import { EventPlan } from '../types';
 
 interface IdeasMoodboardTabProps {
   event: EventPlan;
-  onUpdateEvent: (updated: EventPlan) => void;
+  onUpdateEvent?: (updated: EventPlan) => void;
   onAskAI: (prompt: string) => void;
 }
 
 export const IdeasMoodboardTab: React.FC<IdeasMoodboardTabProps> = ({
   event,
-  onUpdateEvent,
+  onUpdateEvent: _onUpdateEvent,
   onAskAI
 }) => {
   const [copiedHex, setCopiedHex] = useState<string | null>(null);

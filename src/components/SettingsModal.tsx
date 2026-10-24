@@ -64,7 +64,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     }
     setTestStatus('testing');
     try {
-      const sanitizedModel = ALLOWED_MODELS.includes(model) ? model : 'gemini-1.5-flash';
+      const sanitizedModel = ALLOWED_MODELS.includes(model) ? model : DEFAULT_AI_MODEL;
       // Secure Header authentication: No key in URL
       const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${sanitizedModel}:generateContent`;
       const res = await fetch(endpoint, {
@@ -183,8 +183,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   onChange={(e) => setModel(e.target.value)}
                 >
                   <option value="gemini-1.5-flash">gemini-1.5-flash (Default · Fast & Multimodal)</option>
-                  <option value="gemini-1.5-pro">gemini-1.5-pro (In-depth Complex Reasoning)</option>
                   <option value="gemini-2.0-flash">gemini-2.0-flash (Next-Gen High Speed)</option>
+                  <option value="gemini-2.5-flash">gemini-2.5-flash (Advanced Low Latency)</option>
+                  <option value="gemini-3.5-flash">gemini-3.5-flash (High Intelligence)</option>
+                  <option value="gemini-1.5-pro">gemini-1.5-pro (In-depth Complex Reasoning)</option>
                   <option value="gemini-2.0-flash-exp">gemini-2.0-flash-exp (Experimental)</option>
                 </select>
               </div>

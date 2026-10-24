@@ -4,13 +4,8 @@ import {
   Plus, 
   Phone, 
   Mail, 
-  DollarSign, 
-  CheckSquare, 
-  Square, 
   Trash2, 
   Sparkles, 
-  ExternalLink,
-  MessageSquare,
   ShieldCheck
 } from 'lucide-react';
 import { EventPlan, Vendor, BudgetCategory, VendorStatus } from '../types';

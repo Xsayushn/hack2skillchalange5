@@ -2,16 +2,7 @@ import React from 'react';
 import { 
   Printer, 
   Download, 
-  FileText, 
-  Calendar, 
-  DollarSign, 
-  Users, 
-  MapPin, 
-  Sparkles,
-  CheckCircle2,
-  Clock,
-  Handshake,
-  Heart
+  FileText
 } from 'lucide-react';
 import { EventPlan } from '../types';
 import { exportService } from '../services/exportService';

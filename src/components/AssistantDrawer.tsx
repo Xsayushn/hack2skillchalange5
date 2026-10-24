@@ -18,6 +18,7 @@ interface AssistantDrawerProps {
   event: EventPlan;
   aiSettings: AISettings;
   onOpenSettings: () => void;
+  initialPrompt?: string | null;
 }
 
 export const AssistantDrawer: React.FC<AssistantDrawerProps> = ({
@@ -25,7 +26,8 @@ export const AssistantDrawer: React.FC<AssistantDrawerProps> = ({
   onClose,
   event,
   aiSettings,
-  onOpenSettings
+  onOpenSettings,
+  initialPrompt
 }) => {
   const [messages, setMessages] = useState<ChatMessage[]>(() => [
     {
@@ -83,11 +85,12 @@ export const AssistantDrawer: React.FC<AssistantDrawerProps> = ({
       };
 
       setMessages(prev => [...prev, botMsg]);
-    } catch (err: any) {
+    } catch (err: unknown) {
+      const errMsg = err instanceof Error ? err.message : 'Connection glitch';
       const errorMsg: ChatMessage = {
         id: `err-${Date.now()}`,
         sender: 'assistant',
-        text: `Notice: ${err?.message || 'Connection glitch'}. You can configure your Gemini API key in Settings or continue using the autonomous offline engine.`,
+        text: `Notice: ${errMsg}. You can configure your Gemini API key in Settings or continue using the autonomous offline engine.`,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         suggestions: ['How can I save budget?', 'Draft a run of show']
       };
@@ -96,6 +99,12 @@ export const AssistantDrawer: React.FC<AssistantDrawerProps> = ({
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (isOpen && initialPrompt) {
+      handleSendMessage(initialPrompt);
+    }
+  }, [isOpen, initialPrompt]);
 
   const handleCopyMessage = (id: string, text: string) => {
     navigator.clipboard.writeText(text);

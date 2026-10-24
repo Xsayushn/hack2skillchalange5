@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { 
-  Calendar, 
   Clock, 
   Plus, 
   CheckCircle2, 
@@ -8,10 +7,8 @@ import {
   Download, 
   Sparkles, 
   Trash2, 
-  AlertCircle,
-  CalendarCheck,
-  Flame,
-  ArrowUpDown
+  CalendarCheck, 
+  Flame
 } from 'lucide-react';
 import { EventPlan, TimelineItem, TimelinePhase } from '../types';
 import { exportService } from '../services/exportService';
@@ -297,7 +294,7 @@ export const TimelineTab: React.FC<TimelineTabProps> = ({
                 <select 
                   id="milestone-priority"
                   value={newPriority}
-                  onChange={(e) => setNewPriority(e.target.value as any)}
+                  onChange={(e) => setNewPriority(e.target.value as 'high' | 'medium' | 'low')}
                 >
                   <option value="high">🔥 High Priority (Critical Path)</option>
                   <option value="medium">Medium Priority</option>
