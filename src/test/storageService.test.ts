@@ -95,7 +95,13 @@ describe('storageService - Client Persistence & Schema Validation', () => {
   });
 
   it('migrates retired or invalid AI models to DEFAULT_AI_MODEL', () => {
-    // Simulate user having an old retired model in localStorage
+    // Simulate user having old retired models in localStorage
+    localStorage.setItem('celebr_ai_te_model', 'gemini-1.5-flash');
+    expect(storageService.loadAISettings().model).toBe(DEFAULT_AI_MODEL);
+
+    localStorage.setItem('celebr_ai_te_model', 'gemini-2.0-flash');
+    expect(storageService.loadAISettings().model).toBe(DEFAULT_AI_MODEL);
+
     localStorage.setItem('celebr_ai_te_model', 'gemini-1.0-ultra-retired');
     const settings = storageService.loadAISettings();
     expect(settings.model).toBe(DEFAULT_AI_MODEL);

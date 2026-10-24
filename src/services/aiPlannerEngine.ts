@@ -25,9 +25,7 @@ export const ALLOWED_MODELS = [
   'gemini-3.8-flash',
   'gemini-3.6-flash',
   'gemini-3.5-flash',
-  'gemini-2.5-flash',
-  'gemini-2.0-flash',
-  'gemini-1.5-flash'
+  'gemini-2.5-flash'
 ];
 
 export const aiPlannerEngine = {
@@ -114,17 +112,30 @@ You must respond ONLY with a raw JSON object (no markdown quotes, no explanation
 
     const body = {
       contents: [{ role: 'user', parts: [{ text: systemPrompt }] }],
-      generationConfig: { temperature: 0.8, maxOutputTokens: 1400 }
+      generationConfig: {
+        temperature: 0.7,
+        maxOutputTokens: 8192,
+        responseMimeType: 'application/json'
+      }
     };
 
-    const res = await fetch(endpoint, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-goog-api-key': aiSettings.apiKey.trim()
-      },
-      body: JSON.stringify(body)
-    });
+    const controller = new AbortController();
+    const timeoutTimer = setTimeout(() => controller.abort(), 30_000);
+
+    let res: Response;
+    try {
+      res = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-goog-api-key': aiSettings.apiKey.trim()
+        },
+        body: JSON.stringify(body),
+        signal: controller.signal
+      });
+    } finally {
+      clearTimeout(timeoutTimer);
+    }
 
     if (!res.ok) throw new Error(`Gemini API returned status ${res.status}`);
 
@@ -302,14 +313,23 @@ Provide specific, practical, highly creative, and mathematically sound suggestio
       }
     };
 
-    const res = await fetch(endpoint, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-goog-api-key': aiSettings.apiKey.trim()
-      },
-      body: JSON.stringify(body)
-    });
+    const controller = new AbortController();
+    const timeoutTimer = setTimeout(() => controller.abort(), 30_000);
+
+    let res: Response;
+    try {
+      res = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-goog-api-key': aiSettings.apiKey.trim()
+        },
+        body: JSON.stringify(body),
+        signal: controller.signal
+      });
+    } finally {
+      clearTimeout(timeoutTimer);
+    }
 
     if (!res.ok) {
       throw new Error(`Gemini API returned status ${res.status}`);

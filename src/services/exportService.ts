@@ -1,9 +1,16 @@
 import { EventPlan, TimelineItem } from '../types';
 
+/**
+ * Service for exporting event plans across formats: RFC 5545 iCalendar (.ics),
+ * JSON data files, Markdown dossiers, and print stylesheets.
+ */
 export const exportService = {
   /**
-   * Export all timeline milestones and day-of items as a true RFC 5545 .ics Calendar file
-   * with calculated milestone dates, parsed day-of time slots, and notification alarms.
+   * Generates a valid RFC 5545 iCalendar (.ics) string containing master event details,
+   * phased timeline milestones, and day-of run-of-show calendar entries with reminder alarms.
+   *
+   * @param event - The complete active EventPlan
+   * @returns An RFC 5545 formatted iCalendar string
    */
   generateIcs(event: EventPlan): string {
     const now = new Date().toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
@@ -66,6 +73,11 @@ export const exportService = {
 
   /**
    * Resolves milestone dates relative to the event date or calculates precise day-of times
+   * suitable for iCalendar DTSTART and DTEND fields.
+   *
+   * @param item - The timeline item
+   * @param eventDate - The master date of the event
+   * @returns Object containing formatted dtstart and dtend string entries
    */
   resolveTimelineTiming(item: TimelineItem, eventDate: Date): { dtstart: string; dtend: string } {
     const rawTime = (item.targetDateOrTime || '').trim();
@@ -116,7 +128,10 @@ export const exportService = {
   },
 
   /**
-   * Parses time offset descriptions into number of days prior to event
+   * Parses human-readable time offset descriptions into number of days prior to event.
+   *
+   * @param text - Time description (e.g., "3-4 Months Before", "2 Weeks Before", "5 Days Before")
+   * @returns Estimated number of days offset
    */
   parseDateOffsetInDays(text: string): number {
     const lower = text.toLowerCase();
@@ -140,6 +155,12 @@ export const exportService = {
     return 14; // sensible default 2 weeks prior
   },
 
+  /**
+   * Formats a Date object into YYYYMMDD string format.
+   *
+   * @param date - Date to format
+   * @returns 8-character string (YYYYMMDD)
+   */
   formatDateOnly(date: Date): string {
     const y = date.getFullYear();
     const m = String(date.getMonth() + 1).padStart(2, '0');
@@ -147,6 +168,12 @@ export const exportService = {
     return `${y}${m}${d}`;
   },
 
+  /**
+   * Formats a Date object into UTC iCalendar timestamp string format (YYYYMMDDTHHMMSSZ).
+   *
+   * @param date - Date to format
+   * @returns UTC formatted timestamp string
+   */
   formatDateTimeUtc(date: Date): string {
     const y = date.getUTCFullYear();
     const m = String(date.getUTCMonth() + 1).padStart(2, '0');
@@ -157,6 +184,11 @@ export const exportService = {
     return `${y}${m}${d}T${h}${min}${s}Z`;
   },
 
+  /**
+   * Triggers client-side browser download of the event timeline as an .ics file.
+   *
+   * @param event - The active EventPlan
+   */
   downloadIcs(event: EventPlan): void {
     const icsContent = this.generateIcs(event);
     const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
@@ -164,6 +196,11 @@ export const exportService = {
     this.triggerDownload(blob, filename);
   },
 
+  /**
+   * Triggers client-side browser download of the full EventPlan as a formatted JSON file.
+   *
+   * @param event - The active EventPlan
+   */
   downloadJson(event: EventPlan): void {
     const jsonStr = JSON.stringify(event, null, 2);
     const blob = new Blob([jsonStr], { type: 'application/json;charset=utf-8' });
@@ -171,6 +208,13 @@ export const exportService = {
     this.triggerDownload(blob, filename);
   },
 
+  /**
+   * Generates a comprehensive, human-readable Markdown dossier including budget table,
+   * timeline schedule, vendor directory, speeches, and cost-saving insights.
+   *
+   * @param event - The active EventPlan
+   * @returns Formatted Markdown string
+   */
   generateMarkdownDossier(event: EventPlan): string {
     const totalEstimated = event.budgetItems.reduce((acc, b) => acc + b.estimatedCost, 0);
     const totalActual = event.budgetItems.reduce(
@@ -244,6 +288,11 @@ ${event.personalizedIdeas.costSavingTips.map((c) => `- 💡 ${c}`).join('\n')}
 `;
   },
 
+  /**
+   * Triggers client-side browser download of the full markdown event dossier.
+   *
+   * @param event - The active EventPlan
+   */
   downloadMarkdown(event: EventPlan): void {
     const md = this.generateMarkdownDossier(event);
     const blob = new Blob([md], { type: 'text/markdown;charset=utf-8' });
@@ -251,14 +300,29 @@ ${event.personalizedIdeas.costSavingTips.map((c) => `- 💡 ${c}`).join('\n')}
     this.triggerDownload(blob, filename);
   },
 
+  /**
+   * Invokes the browser's native print dialog to print or save the event dossier as PDF.
+   */
   printDossier(): void {
     window.print();
   },
 
+  /**
+   * Escapes special characters for RFC 5545 iCalendar standard compliance.
+   *
+   * @param text - Raw text string
+   * @returns RFC 5545 escaped string
+   */
   escapeIcs(text: string): string {
     return text.replace(/[\\;,]/g, (match) => '\\' + match).replace(/\n/g, '\\n');
   },
 
+  /**
+   * Helper method that creates an anchor tag to trigger browser download of a given Blob.
+   *
+   * @param blob - Binary or text file content
+   * @param filename - Desired filename for download
+   */
   triggerDownload(blob: Blob, filename: string): void {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');

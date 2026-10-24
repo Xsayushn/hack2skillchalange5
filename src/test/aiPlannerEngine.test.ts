@@ -235,10 +235,12 @@ describe('aiPlannerEngine - Live Gemini API Path & Security', () => {
 
     let capturedUrl = '';
     let capturedHeaders: Record<string, string> = {};
+    let capturedBody: Record<string, unknown> = {};
 
     global.fetch = vi.fn().mockImplementation(async (url: string, init?: RequestInit) => {
       capturedUrl = url;
       capturedHeaders = (init?.headers as Record<string, string>) || {};
+      capturedBody = init?.body ? JSON.parse(init.body as string) : {};
       return {
         ok: true,
         status: 200,
@@ -278,6 +280,11 @@ describe('aiPlannerEngine - Live Gemini API Path & Security', () => {
     expect(capturedHeaders['x-goog-api-key']).toBe('AIzaSyFakeKeyForTesting12345678');
     // Ensure API key is NEVER leaked in URL query parameters
     expect(capturedUrl).not.toContain('key=');
+    // Ensure maxOutputTokens is 8192 and responseMimeType is application/json
+    expect((capturedBody.generationConfig as Record<string, unknown>).maxOutputTokens).toBe(8192);
+    expect((capturedBody.generationConfig as Record<string, unknown>).responseMimeType).toBe(
+      'application/json'
+    );
   });
 
   it('falls back safely to autonomous heuristics with visible notice when live call fails', async () => {

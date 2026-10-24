@@ -130,7 +130,7 @@ describe('UI Component Integration Tests', () => {
       <SettingsModal
         isOpen={true}
         onClose={handleClose}
-        aiSettings={{ apiKey: '', model: 'gemini-1.5-flash', useOfflineFallback: true }}
+        aiSettings={{ apiKey: '', model: 'gemini-3.8-flash', useOfflineFallback: true }}
         onSaveAISettings={handleSave}
         onResetData={handleReset}
         onImportData={handleImport}
@@ -152,7 +152,7 @@ describe('UI Component Integration Tests', () => {
       <SettingsModal
         isOpen={true}
         onClose={handleClose}
-        aiSettings={{ apiKey: '', model: 'gemini-1.5-flash', useOfflineFallback: true }}
+        aiSettings={{ apiKey: '', model: 'gemini-3.8-flash', useOfflineFallback: true }}
         onSaveAISettings={handleSave}
         onResetData={vi.fn()}
         onImportData={vi.fn()}
@@ -168,5 +168,41 @@ describe('UI Component Integration Tests', () => {
 
     // Focus must stay on input and NOT jump to close button
     expect(document.activeElement).toBe(input);
+  });
+
+  it('useModalA11y traps focus by wrapping Tab from last element to first, and Shift+Tab from first to last', () => {
+    render(
+      <SettingsModal
+        isOpen={true}
+        onClose={vi.fn()}
+        aiSettings={{ apiKey: '', model: 'gemini-3.8-flash', useOfflineFallback: true }}
+        onSaveAISettings={vi.fn()}
+        onResetData={vi.fn()}
+        onImportData={vi.fn()}
+      />
+    );
+
+    const dialog = screen.getByRole('dialog');
+    const focusables = dialog.querySelectorAll<HTMLElement>(
+      'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+    );
+    expect(focusables.length).toBeGreaterThan(1);
+
+    const firstElement = focusables[0];
+    const lastElement = focusables[focusables.length - 1];
+
+    // Focus last element and press Tab -> should wrap to first element
+    lastElement.focus();
+    expect(document.activeElement).toBe(lastElement);
+
+    fireEvent.keyDown(window, { key: 'Tab', code: 'Tab', shiftKey: false });
+    expect(document.activeElement).toBe(firstElement);
+
+    // Focus first element and press Shift+Tab -> should wrap to last element
+    firstElement.focus();
+    expect(document.activeElement).toBe(firstElement);
+
+    fireEvent.keyDown(window, { key: 'Tab', code: 'Tab', shiftKey: true });
+    expect(document.activeElement).toBe(lastElement);
   });
 });

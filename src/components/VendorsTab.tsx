@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Handshake, Plus, Phone, Mail, Trash2, Sparkles, ShieldCheck } from 'lucide-react';
 import { EventPlan, Vendor, BudgetCategory, VendorStatus } from '../types';
-import { useModalA11y } from '../hooks/useModalA11y';
+import { AddVendorModal } from './vendors/AddVendorModal';
 import '../styles/vendors.css';
 
 interface VendorsTabProps {
@@ -26,42 +26,11 @@ const CATEGORIES: BudgetCategory[] = [
 export const VendorsTab: React.FC<VendorsTabProps> = ({ event, onUpdateEvent, onAskAI }) => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [activeCategoryFilter, setActiveCategoryFilter] = useState('all');
-  const addModalRef = useModalA11y<HTMLDivElement>({
-    isOpen: showAddModal,
-    onClose: () => setShowAddModal(false)
-  });
 
-  // Form State
-  const [name, setName] = useState('');
-  const [category, setCategory] = useState<BudgetCategory>('Catering & Bar');
-  const [contactPerson, setContactPerson] = useState('');
-  const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
-  const [status, setStatus] = useState<VendorStatus>('contacted');
-  const [quotedCost, setQuotedCost] = useState(1500);
-  const [agreedCost, setAgreedCost] = useState(1500);
-  const [notes, setNotes] = useState('');
-
-  const handleAddVendor = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!name.trim()) return;
-
+  const handleAddVendor = (vendorData: Omit<Vendor, 'id'>) => {
     const newVendor: Vendor = {
-      id: `v-${Date.now().toString(36)}`,
-      name: name.trim(),
-      category,
-      contactPerson: contactPerson.trim() || 'Lead Representative',
-      email: email.trim(),
-      phone: phone.trim(),
-      status,
-      quotedCost: Number(quotedCost) || 0,
-      agreedCost: Number(agreedCost) || 0,
-      notes: notes.trim(),
-      keyQuestions: [
-        'What is your cancellation and refund schedule?',
-        'Do you provide full commercial liability insurance?',
-        'Are there any overtime or additional travel fees?'
-      ]
+      ...vendorData,
+      id: `v-${Date.now().toString(36)}`
     };
 
     onUpdateEvent({
@@ -69,13 +38,6 @@ export const VendorsTab: React.FC<VendorsTabProps> = ({ event, onUpdateEvent, on
       vendors: [...event.vendors, newVendor],
       updatedAt: new Date().toISOString()
     });
-
-    setName('');
-    setContactPerson('');
-    setEmail('');
-    setPhone('');
-    setNotes('');
-    setShowAddModal(false);
   };
 
   const handleDeleteVendor = (id: string) => {
@@ -276,155 +238,13 @@ export const VendorsTab: React.FC<VendorsTabProps> = ({ event, onUpdateEvent, on
       </div>
 
       {/* Add Vendor Modal */}
-      {showAddModal && (
-        <div
-          className="modal-backdrop"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="add-vendor-title"
-        >
-          <div className="modal-content glass-panel" ref={addModalRef} tabIndex={-1}>
-            <div className="modal-header">
-              <h3 id="add-vendor-title">Add Vendor or Service Partner</h3>
-              <button
-                className="btn btn-ghost btn-sm icon-only"
-                onClick={() => setShowAddModal(false)}
-                aria-label="Close dialog"
-              >
-                ✕
-              </button>
-            </div>
-
-            <form onSubmit={handleAddVendor} className="modal-form">
-              <div className="form-group">
-                <label htmlFor="vendor-name-input">Company / Vendor Name *</label>
-                <input
-                  id="vendor-name-input"
-                  type="text"
-                  required
-                  placeholder="e.g. Lumina Visuals or Cedar Grove Catering"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                />
-              </div>
-
-              <div className="form-row-2">
-                <div className="form-group">
-                  <label htmlFor="vendor-cat-input">Category</label>
-                  <select
-                    id="vendor-cat-input"
-                    value={category}
-                    onChange={(e) => setCategory(e.target.value as BudgetCategory)}
-                  >
-                    {CATEGORIES.map((c) => (
-                      <option key={c} value={c}>
-                        {c}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="form-group">
-                  <label htmlFor="vendor-status-input">Status</label>
-                  <select
-                    id="vendor-status-input"
-                    value={status}
-                    onChange={(e) => setStatus(e.target.value as VendorStatus)}
-                  >
-                    <option value="researching">Researching</option>
-                    <option value="contacted">Contacted</option>
-                    <option value="quoted">Quoted</option>
-                    <option value="booked">Booked</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="form-row-3">
-                <div className="form-group">
-                  <label htmlFor="vendor-contact-person">Contact Person</label>
-                  <input
-                    id="vendor-contact-person"
-                    type="text"
-                    placeholder="e.g. Sarah Connor"
-                    value={contactPerson}
-                    onChange={(e) => setContactPerson(e.target.value)}
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label htmlFor="vendor-email">Email</label>
-                  <input
-                    id="vendor-email"
-                    type="email"
-                    placeholder="sarah@vendor.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label htmlFor="vendor-phone">Phone</label>
-                  <input
-                    id="vendor-phone"
-                    type="tel"
-                    placeholder="(555) 012-3456"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                  />
-                </div>
-              </div>
-
-              <div className="form-row-2">
-                <div className="form-group">
-                  <label htmlFor="vendor-quoted">Quoted Cost ({event.currencySymbol})</label>
-                  <input
-                    id="vendor-quoted"
-                    type="number"
-                    min="0"
-                    value={quotedCost}
-                    onChange={(e) => setQuotedCost(Number(e.target.value))}
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label htmlFor="vendor-agreed">Agreed Final Cost ({event.currencySymbol})</label>
-                  <input
-                    id="vendor-agreed"
-                    type="number"
-                    min="0"
-                    value={agreedCost}
-                    onChange={(e) => setAgreedCost(Number(e.target.value))}
-                  />
-                </div>
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="vendor-notes">Contract Notes & Inclusions</label>
-                <textarea
-                  id="vendor-notes"
-                  rows={2}
-                  placeholder="Key package inclusions, payment terms, or setup arrival hours..."
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                />
-              </div>
-
-              <div className="modal-actions">
-                <button
-                  type="button"
-                  className="btn btn-secondary"
-                  onClick={() => setShowAddModal(false)}
-                >
-                  Cancel
-                </button>
-                <button type="submit" className="btn btn-primary">
-                  Save Vendor
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      <AddVendorModal
+        isOpen={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        currencySymbol={event.currencySymbol}
+        categories={CATEGORIES}
+        onAddVendor={handleAddVendor}
+      />
     </div>
   );
 };

@@ -7,15 +7,29 @@ import { OverviewTab } from '../components/OverviewTab';
 import { VendorsTab } from '../components/VendorsTab';
 import { AssistantDrawer } from '../components/AssistantDrawer';
 import { AddExpenseModal } from '../components/budget/AddExpenseModal';
+import { ExpenseTable } from '../components/budget/ExpenseTable';
+import { AddVendorModal } from '../components/vendors/AddVendorModal';
+import { WizardStepPriorities } from '../components/wizard/WizardStepPriorities';
 import { EventWizardModal } from '../components/EventWizardModal';
 import { SettingsModal } from '../components/SettingsModal';
 import { MasterDossierTab } from '../components/MasterDossierTab';
+import { exportService } from '../services/exportService';
 import { INITIAL_EVENTS } from '../data/mockEvents';
 
 describe('Additional UI Component Tests & Regression Suite', () => {
   const sampleEvent = INITIAL_EVENTS[0];
 
-  it('Navbar renders brand logo, event picker, and dispatches modal toggles', () => {
+  it('Navbar renders brand logo, event picker, and dispatches modal toggles and exports', () => {
+    vi.spyOn(exportService, 'downloadIcs').mockImplementation(() => {});
+    vi.spyOn(exportService, 'downloadJson').mockImplementation(() => {});
+    vi.spyOn(exportService, 'downloadMarkdown').mockImplementation(() => {});
+    vi.spyOn(exportService, 'printDossier').mockImplementation(() => {});
+    Object.assign(navigator, {
+      clipboard: {
+        writeText: vi.fn().mockResolvedValue(undefined)
+      }
+    });
+
     const handleSelectEvent = vi.fn();
     const handleOpenWizard = vi.fn();
     const handleOpenSettings = vi.fn();
@@ -47,6 +61,49 @@ describe('Additional UI Component Tests & Regression Suite', () => {
     const settingsBtn = screen.getByRole('button', { name: /Open AI Settings/i });
     fireEvent.click(settingsBtn);
     expect(handleOpenSettings).toHaveBeenCalledTimes(1);
+
+    // Event selector change
+    const select = screen.getByRole('combobox', { name: /Select active event plan/i });
+    fireEvent.change(select, { target: { value: INITIAL_EVENTS[1].id } });
+    expect(handleSelectEvent).toHaveBeenCalledWith(INITIAL_EVENTS[1].id);
+
+    // Toggle theme
+    const themeBtn = screen.getByRole('button', { name: /Toggle theme mode/i });
+    fireEvent.click(themeBtn);
+    expect(handleToggleTheme).toHaveBeenCalledTimes(1);
+
+    // Reset data
+    const resetBtn = screen.getByRole('button', { name: /Reset workspace/i });
+    fireEvent.click(resetBtn);
+    expect(handleResetData).toHaveBeenCalledTimes(1);
+
+    // Open Export dropdown and trigger options
+    const exportBtn = screen.getByRole('button', { name: /Export and share options/i });
+    fireEvent.click(exportBtn);
+
+    const icsItem = screen.getByText(/Calendar Sync/i);
+    fireEvent.click(icsItem);
+    expect(exportService.downloadIcs).toHaveBeenCalledWith(sampleEvent);
+
+    fireEvent.click(exportBtn);
+    const mdItem = screen.getByText(/Markdown Dossier/i);
+    fireEvent.click(mdItem);
+    expect(exportService.downloadMarkdown).toHaveBeenCalledWith(sampleEvent);
+
+    fireEvent.click(exportBtn);
+    const jsonItem = screen.getByText(/Export JSON Data/i);
+    fireEvent.click(jsonItem);
+    expect(exportService.downloadJson).toHaveBeenCalledWith(sampleEvent);
+
+    fireEvent.click(exportBtn);
+    const printItem = screen.getByText(/Printable Event Dossier/i);
+    fireEvent.click(printItem);
+    expect(exportService.printDossier).toHaveBeenCalled();
+
+    fireEvent.click(exportBtn);
+    const shareItem = screen.getByText(/Copy App Link/i);
+    fireEvent.click(shareItem);
+    expect(navigator.clipboard.writeText).toHaveBeenCalled();
   });
 
   it('OverviewTab renders quick stats, countdown, and navigates to tabs', () => {
@@ -93,7 +150,7 @@ describe('Additional UI Component Tests & Regression Suite', () => {
     expect(screen.getByText('Add Vendor or Service Partner')).toBeInTheDocument();
   });
 
-  it('AssistantDrawer renders message history, preset prompt chips, and closes on Escape', () => {
+  it('AssistantDrawer renders message history, preset prompt chips, and closes on Escape', async () => {
     const handleClose = vi.fn();
 
     render(
@@ -112,6 +169,15 @@ describe('Additional UI Component Tests & Regression Suite', () => {
     // Trigger Escape
     fireEvent.keyDown(window, { key: 'Escape', code: 'Escape' });
     expect(handleClose).toHaveBeenCalledTimes(1);
+
+    // Type a message and send
+    const input = screen.getByPlaceholderText(/Ask anything about budgets/i);
+    fireEvent.change(input, { target: { value: 'How can I save money on flowers?' } });
+    const sendBtn = screen.getByRole('button', { name: /Send query/i });
+    fireEvent.click(sendBtn);
+    await waitFor(() => {
+      expect(screen.getByText('How can I save money on flowers?')).toBeInTheDocument();
+    });
   });
 
   it('AddExpenseModal creates a new budget item and handles validation', () => {
@@ -254,5 +320,176 @@ describe('Additional UI Component Tests & Regression Suite', () => {
     expect(screen.getByText(sampleEvent.title)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Download Markdown/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Print \/ Save as PDF/i })).toBeInTheDocument();
+  });
+
+  it('WizardStepPriorities updates currency, budget, and priority chips', () => {
+    const handleCurrencySelect = vi.fn();
+    const handleBudgetChange = vi.fn();
+    const handlePriorityFocus = vi.fn();
+
+    render(
+      <WizardStepPriorities
+        currency="USD"
+        currencySymbol="$"
+        onCurrencySelect={handleCurrencySelect}
+        totalBudget={35000}
+        setTotalBudget={handleBudgetChange}
+        priorityFocus="balanced"
+        setPriorityFocus={handlePriorityFocus}
+      />
+    );
+
+    expect(screen.getByText('Financial Targets & Priority Weighting')).toBeInTheDocument();
+
+    // Change currency
+    const currSelect = screen.getByLabelText(/Currency/i);
+    fireEvent.change(currSelect, { target: { value: 'EUR' } });
+    expect(handleCurrencySelect).toHaveBeenCalledWith('EUR');
+
+    // Change budget
+    const budgetInput = screen.getByLabelText(/Total Target Budget/i);
+    fireEvent.change(budgetInput, { target: { value: '45000' } });
+    expect(handleBudgetChange).toHaveBeenCalledWith(45000);
+
+    // Click priority chip
+    const decorChip = screen.getByRole('button', { name: /Lush Decor & Aesthetics/i });
+    fireEvent.click(decorChip);
+    expect(handlePriorityFocus).toHaveBeenCalledWith('decor');
+  });
+
+  it('ExpenseTable handles filtering, editing costs, payment status change, and item deletion', () => {
+    const handleUpdateItem = vi.fn();
+    const handleDeleteItem = vi.fn();
+    const handleFilterCategory = vi.fn();
+    const handleFilterStatus = vi.fn();
+    const handleOpenAddModal = vi.fn();
+
+    render(
+      <ExpenseTable
+        currencySymbol="$"
+        items={sampleEvent.budgetItems}
+        onUpdateItem={handleUpdateItem}
+        onDeleteItem={handleDeleteItem}
+        filterCategory="all"
+        onFilterCategoryChange={handleFilterCategory}
+        filterStatus="all"
+        onFilterStatusChange={handleFilterStatus}
+        onOpenAddModal={handleOpenAddModal}
+      />
+    );
+
+    // Open add expense
+    const addBtn = screen.getByRole('button', { name: /Add new budget line item/i });
+    fireEvent.click(addBtn);
+    expect(handleOpenAddModal).toHaveBeenCalledTimes(1);
+
+    // Change category filter
+    const catSelect = screen.getByLabelText(/Filter expenses by category/i);
+    fireEvent.change(catSelect, { target: { value: 'Venue & Rentals' } });
+    expect(handleFilterCategory).toHaveBeenCalledWith('Venue & Rentals');
+
+    // Change status filter
+    const statusSelect = screen.getByLabelText(/Filter expenses by payment status/i);
+    fireEvent.change(statusSelect, { target: { value: 'paid_in_full' } });
+    expect(handleFilterStatus).toHaveBeenCalledWith('paid_in_full');
+
+    // Edit actual cost
+    const firstItem = sampleEvent.budgetItems[0];
+    const actualInput = screen.getByLabelText(new RegExp(`Actual cost for ${firstItem.name}`, 'i'));
+    fireEvent.change(actualInput, { target: { value: '9500' } });
+    expect(handleUpdateItem).toHaveBeenCalledWith(firstItem.id, { actualCost: 9500 });
+
+    // Edit paid amount
+    const paidInput = screen.getByLabelText(new RegExp(`Paid amount for ${firstItem.name}`, 'i'));
+    fireEvent.change(paidInput, { target: { value: '5000' } });
+    expect(handleUpdateItem).toHaveBeenCalledWith(firstItem.id, { paidCost: 5000 });
+
+    // Change status
+    const itemStatusSelect = screen.getByLabelText(
+      new RegExp(`Payment status for ${firstItem.name}`, 'i')
+    );
+    fireEvent.change(itemStatusSelect, { target: { value: 'deposit_paid' } });
+    expect(handleUpdateItem).toHaveBeenCalledWith(firstItem.id, { status: 'deposit_paid' });
+
+    // Delete item
+    const deleteBtn = screen.getByRole('button', {
+      name: new RegExp(`Delete ${firstItem.name}`, 'i')
+    });
+    fireEvent.click(deleteBtn);
+    expect(handleDeleteItem).toHaveBeenCalledWith(firstItem.id);
+  });
+
+  it('AddVendorModal handles vendor creation, validation, and cancel', () => {
+    const handleAdd = vi.fn();
+    const handleClose = vi.fn();
+
+    const { rerender } = render(
+      <AddVendorModal
+        isOpen={false}
+        onClose={handleClose}
+        currencySymbol="$"
+        categories={['Catering & Bar', 'Venue & Rentals', 'Music & Entertainment']}
+        onAddVendor={handleAdd}
+      />
+    );
+
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+
+    rerender(
+      <AddVendorModal
+        isOpen={true}
+        onClose={handleClose}
+        currencySymbol="$"
+        categories={['Catering & Bar', 'Venue & Rentals', 'Music & Entertainment']}
+        onAddVendor={handleAdd}
+      />
+    );
+
+    expect(
+      screen.getByRole('dialog', { name: /Add Vendor or Service Partner/i })
+    ).toBeInTheDocument();
+
+    // Fill form
+    fireEvent.change(screen.getByLabelText(/Company \/ Vendor Name/i), {
+      target: { value: 'Grand Symphony Orchestra' }
+    });
+    fireEvent.change(screen.getByLabelText(/Contact Person/i), {
+      target: { value: 'Maestro Evans' }
+    });
+    fireEvent.change(screen.getByLabelText(/Email/i), {
+      target: { value: 'evans@symphony.org' }
+    });
+    fireEvent.change(screen.getByLabelText(/Phone/i), {
+      target: { value: '(555) 888-9999' }
+    });
+    fireEvent.change(screen.getByLabelText(/Quoted Cost/i), {
+      target: { value: '3500' }
+    });
+    fireEvent.change(screen.getByLabelText(/Agreed Final Cost/i), {
+      target: { value: '3200' }
+    });
+    fireEvent.change(screen.getByLabelText(/Contract Notes & Inclusions/i), {
+      target: { value: 'String quartet for 3 hours' }
+    });
+
+    // Submit
+    fireEvent.click(screen.getByRole('button', { name: /Save Vendor/i }));
+
+    expect(handleAdd).toHaveBeenCalledTimes(1);
+    expect(handleAdd).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'Grand Symphony Orchestra',
+        contactPerson: 'Maestro Evans',
+        email: 'evans@symphony.org',
+        phone: '(555) 888-9999',
+        quotedCost: 3500,
+        agreedCost: 3200,
+        notes: 'String quartet for 3 hours'
+      })
+    );
+
+    // Cancel closes modal
+    fireEvent.click(screen.getByRole('button', { name: /Cancel/i }));
+    expect(handleClose).toHaveBeenCalled();
   });
 });

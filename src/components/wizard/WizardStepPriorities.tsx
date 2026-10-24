@@ -56,8 +56,18 @@ export const WizardStepPriorities: React.FC<WizardStepPrioritiesProps> = ({
         </div>
 
         <div className="form-group full-width">
-          <label>Priority Investment Focus</label>
-          <div className="priority-options-grid">
+          <span
+            className="form-group-label"
+            id="priority-focus-label"
+            style={{ fontWeight: 600, display: 'block', marginBottom: '8px' }}
+          >
+            Priority Investment Focus
+          </span>
+          <div
+            className="priority-options-grid"
+            role="group"
+            aria-labelledby="priority-focus-label"
+          >
             {PRIORITY_OPTIONS.map((opt) => (
               <button
                 key={opt.id}

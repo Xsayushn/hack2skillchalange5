@@ -1,10 +1,28 @@
 /// <reference types="vitest" />
-import { defineConfig } from 'vite';
+import { defineConfig, Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
+
+/**
+ * Custom Vite plugin enforcing strict CSP in production bundles.
+ * Strips 'unsafe-inline' from script-src during build time while allowing
+ * hot reload scripts during local development.
+ */
+function strictCspPlugin(): Plugin {
+  return {
+    name: 'strict-csp-production',
+    apply: 'build',
+    transformIndexHtml(html) {
+      return html.replace(
+        "script-src 'self' 'unsafe-inline'",
+        "script-src 'self'"
+      );
+    }
+  };
+}
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), strictCspPlugin()],
   preview: {
     host: '0.0.0.0',
     port: process.env.PORT ? parseInt(process.env.PORT) : 4173,
@@ -14,6 +32,16 @@ export default defineConfig({
       '.onrender.com'
     ],
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vendor-react': ['react', 'react-dom'],
+          'vendor-icons': ['lucide-react']
+        }
+      }
+    }
+  },
   test: {
     globals: true,
     environment: 'jsdom',
@@ -22,7 +50,13 @@ export default defineConfig({
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
       include: ['src/**/*.{ts,tsx}'],
-      exclude: ['src/**/*.d.ts', 'src/test/**', 'src/main.tsx', 'src/types/**']
+      exclude: ['src/**/*.d.ts', 'src/test/**', 'src/main.tsx', 'src/types/**'],
+      thresholds: {
+        statements: 70,
+        lines: 70,
+        functions: 60,
+        branches: 60
+      }
     }
   }
 });

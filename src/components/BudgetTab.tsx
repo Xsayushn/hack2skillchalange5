@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { Sparkles } from 'lucide-react';
 import { EventPlan, BudgetItem } from '../types';
 import { CURRENCIES } from './budget/budgetConstants';
@@ -41,61 +41,73 @@ export const BudgetTab: React.FC<BudgetTabProps> = ({ event, onUpdateEvent, onAs
     return Object.entries(categoryMap).filter(([_, val]) => val > 0);
   }, [event.budgetItems]);
 
-  // Handler for adding line item
-  const handleAddItem = (item: Omit<BudgetItem, 'id'>) => {
-    const newItem: BudgetItem = {
-      ...item,
-      id: `bi-${Date.now().toString(36)}`
-    };
+  // Memoized handlers for line items
+  const handleAddItem = useCallback(
+    (item: Omit<BudgetItem, 'id'>) => {
+      const newItem: BudgetItem = {
+        ...item,
+        id: `bi-${Date.now().toString(36)}`
+      };
 
-    const updated = {
-      ...event,
-      budgetItems: [...event.budgetItems, newItem],
-      updatedAt: new Date().toISOString()
-    };
-    onUpdateEvent(updated);
-  };
+      const updated = {
+        ...event,
+        budgetItems: [...event.budgetItems, newItem],
+        updatedAt: new Date().toISOString()
+      };
+      onUpdateEvent(updated);
+    },
+    [event, onUpdateEvent]
+  );
 
-  // Handler for deleting line item
-  const handleDeleteItem = (id: string) => {
-    const updated = {
-      ...event,
-      budgetItems: event.budgetItems.filter((b) => b.id !== id),
-      updatedAt: new Date().toISOString()
-    };
-    onUpdateEvent(updated);
-  };
+  const handleDeleteItem = useCallback(
+    (id: string) => {
+      const updated = {
+        ...event,
+        budgetItems: event.budgetItems.filter((b) => b.id !== id),
+        updatedAt: new Date().toISOString()
+      };
+      onUpdateEvent(updated);
+    },
+    [event, onUpdateEvent]
+  );
 
-  // Handler for quick updating line item fields
-  const handleUpdateItem = (id: string, updates: Partial<BudgetItem>) => {
-    const updated = {
-      ...event,
-      budgetItems: event.budgetItems.map((b) => (b.id === id ? { ...b, ...updates } : b)),
-      updatedAt: new Date().toISOString()
-    };
-    onUpdateEvent(updated);
-  };
+  const handleUpdateItem = useCallback(
+    (id: string, updates: Partial<BudgetItem>) => {
+      const updated = {
+        ...event,
+        budgetItems: event.budgetItems.map((b) => (b.id === id ? { ...b, ...updates } : b)),
+        updatedAt: new Date().toISOString()
+      };
+      onUpdateEvent(updated);
+    },
+    [event, onUpdateEvent]
+  );
 
-  // Handler for updating target budget or currency
-  const handleTotalBudgetChange = (newTotal: number) => {
-    onUpdateEvent({
-      ...event,
-      totalBudget: Math.max(0, newTotal),
-      updatedAt: new Date().toISOString()
-    });
-  };
-
-  const handleCurrencyChange = (currCode: string) => {
-    const match = CURRENCIES.find((c) => c.code === currCode);
-    if (match) {
+  const handleTotalBudgetChange = useCallback(
+    (newTotal: number) => {
       onUpdateEvent({
         ...event,
-        currency: match.code,
-        currencySymbol: match.symbol,
+        totalBudget: Math.max(0, newTotal),
         updatedAt: new Date().toISOString()
       });
-    }
-  };
+    },
+    [event, onUpdateEvent]
+  );
+
+  const handleCurrencyChange = useCallback(
+    (currCode: string) => {
+      const match = CURRENCIES.find((c) => c.code === currCode);
+      if (match) {
+        onUpdateEvent({
+          ...event,
+          currency: match.code,
+          currencySymbol: match.symbol,
+          updatedAt: new Date().toISOString()
+        });
+      }
+    },
+    [event, onUpdateEvent]
+  );
 
   // Memoized Filter items
   const filteredItems = useMemo(() => {
