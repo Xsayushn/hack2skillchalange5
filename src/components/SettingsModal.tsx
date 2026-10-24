@@ -182,10 +182,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   value={model} 
                   onChange={(e) => setModel(e.target.value)}
                 >
-                  <option value="gemini-2.5-flash">gemini-2.5-flash (Default · Ultra-Fast Multimodal)</option>
-                  <option value="gemini-3.5-flash">gemini-3.5-flash (High Intelligence & Efficiency)</option>
-                  <option value="gemini-3.8-flash">gemini-3.8-flash (Latest Low-Latency Production)</option>
-                  <option value="gemini-2.5-pro">gemini-2.5-pro (In-depth Complex Reasoning)</option>
+                  <option value="gemini-1.5-flash">gemini-1.5-flash (Default · Fast & Multimodal)</option>
+                  <option value="gemini-1.5-pro">gemini-1.5-pro (In-depth Complex Reasoning)</option>
+                  <option value="gemini-2.0-flash">gemini-2.0-flash (Next-Gen High Speed)</option>
+                  <option value="gemini-2.0-flash-exp">gemini-2.0-flash-exp (Experimental)</option>
                 </select>
               </div>
 

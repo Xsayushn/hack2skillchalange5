@@ -42,7 +42,7 @@ CelebrAIte implements a **Hybrid AI Strategy** that guarantees reliability under
                                          │               │
         ┌────────────────────────────────▼──┐         ┌──▼────────────────────────────────┐
         │   Autonomous Heuristic Engine     │         │   Live Google Gemini API Mode     │
-        │   - 100% Offline Capable          │         │   - gemini-2.5-flash / 3.5-flash  │
+        │   - 100% Offline Capable          │         │   - gemini-1.5-flash / 2.0-flash  │
         │   - Zero API Key Required         │         │   - Authenticated via HTTP Header │
         │   - Deterministic Domain Physics  │         │   - Stored in SessionStorage only │
         │   - Weaves Custom User Vibe       │         │   - Dynamic JSON Schema Synthesis │
@@ -62,7 +62,7 @@ CelebrAIte implements a **Hybrid AI Strategy** that guarantees reliability under
 ```
 
 ### 1. Generative AI Plan Synthesis (`generateEventPlanAsync`)
-When an optional Gemini API key is configured, the creation wizard connects to Google's Gemini models (`gemini-2.5-flash`, `gemini-3.5-flash`, `gemini-3.8-flash`) with structured JSON instructions. It autonomously generates:
+When an optional Gemini API key is configured, the creation wizard connects to Google's Gemini models (`gemini-1.5-flash`, `gemini-1.5-pro`, `gemini-2.0-flash`) with structured JSON instructions. It autonomously generates:
 - Bespoke event titles and themes matched to the user's aesthetic vibe.
 - Domain-weighted budget allocations across 10 categories with custom unit estimates.
 - Phased milestone timelines with date offsets and minute-by-minute day-of schedules.
@@ -92,7 +92,7 @@ In response to peer review feedback, security measures were enhanced:
 3. **Strict Model Allowlist:**
    - User-selected or imported model identifiers are validated against an allowlist:
      ```typescript
-     const ALLOWED_MODELS = ['gemini-2.5-flash', 'gemini-3.5-flash', 'gemini-3.8-flash', 'gemini-2.5-pro'];
+     const ALLOWED_MODELS = ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-2.0-flash', 'gemini-2.0-flash-exp'];
      ```
    - Prevents arbitrary URL path injection or outdated model failures.
 4. **Deep Schema Validation on JSON Imports:**

@@ -161,7 +161,7 @@ describe('UI Component Integration Tests', () => {
       <SettingsModal 
         isOpen={true}
         onClose={handleClose}
-        aiSettings={{ apiKey: '', model: 'gemini-2.5-flash', useOfflineFallback: true }}
+        aiSettings={{ apiKey: '', model: 'gemini-1.5-flash', useOfflineFallback: true }}
         onSaveAISettings={handleSave}
         onResetData={handleReset}
         onImportData={handleImport}
@@ -183,7 +183,7 @@ describe('UI Component Integration Tests', () => {
       <SettingsModal 
         isOpen={true}
         onClose={handleClose}
-        aiSettings={{ apiKey: '', model: 'gemini-2.5-flash', useOfflineFallback: true }}
+        aiSettings={{ apiKey: '', model: 'gemini-1.5-flash', useOfflineFallback: true }}
         onSaveAISettings={handleSave}
         onResetData={vi.fn()}
         onImportData={vi.fn()}

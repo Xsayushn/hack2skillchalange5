@@ -16,7 +16,7 @@ import { useModalA11y } from '../hooks/useModalA11y';
 interface EventWizardModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onEventCreated: (newEvent: EventPlan, notice?: string) => void;
+  onEventCreated: (newEvent: EventPlan) => void;
   aiSettings?: AISettings;
 }
 
@@ -157,15 +157,14 @@ export const EventWizardModal: React.FC<EventWizardModalProps> = ({
         }
       }
 
-      onEventCreated(result.plan, result.errorNotice);
+      onEventCreated(result.plan);
       onClose();
       setStep(1);
     } catch (err: unknown) {
-      const errMsg = err instanceof Error ? err.message : String(err);
       console.error('Plan generation failed', err);
       // Fallback to offline heuristic
       const fallbackPlan = aiPlannerEngine.generateEventPlan(params);
-      onEventCreated(fallbackPlan, `Live plan generation encountered an issue (${errMsg.slice(0, 80)}). Synthesized using Autonomous Heuristic Engine.`);
+      onEventCreated(fallbackPlan);
       onClose();
       setStep(1);
     } finally {
