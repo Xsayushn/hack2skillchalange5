@@ -1,16 +1,17 @@
 import React, { useState } from 'react';
-import { 
-  Sparkles, 
-  Palette, 
-  Copy, 
-  Check, 
-  Music, 
-  UtensilsCrossed, 
-  MessageSquare, 
-  Lightbulb, 
+import {
+  Sparkles,
+  Palette,
+  Copy,
+  Check,
+  Music,
+  UtensilsCrossed,
+  MessageSquare,
+  Lightbulb,
   Smile
 } from 'lucide-react';
 import { EventPlan } from '../types';
+import '../styles/moodboard.css';
 
 interface IdeasMoodboardTabProps {
   event: EventPlan;
@@ -53,9 +54,13 @@ export const IdeasMoodboardTab: React.FC<IdeasMoodboardTabProps> = ({
           </div>
         </div>
 
-        <button 
+        <button
           className="btn btn-secondary btn-sm"
-          onClick={() => onAskAI(`Suggest 3 fresh, alternative theme concepts and color palettes for ${event.title} (${event.type}) with a "${event.vibe}" atmosphere.`)}
+          onClick={() =>
+            onAskAI(
+              `Suggest 3 fresh, alternative theme concepts and color palettes for ${event.title} (${event.type}) with a "${event.vibe}" atmosphere.`
+            )
+          }
         >
           <Palette size={16} />
           <span>Regenerate Theme Concepts</span>
@@ -67,7 +72,9 @@ export const IdeasMoodboardTab: React.FC<IdeasMoodboardTabProps> = ({
         <div className="section-header-flex">
           <div>
             <h3>Harmonious Color Palette</h3>
-            <p className="card-sub-text">Click any swatch to copy the hex code for invitations, florals, and lighting</p>
+            <p className="card-sub-text">
+              Click any swatch to copy the hex code for invitations, florals, and lighting
+            </p>
           </div>
         </div>
 
@@ -106,9 +113,13 @@ export const IdeasMoodboardTab: React.FC<IdeasMoodboardTabProps> = ({
               <Smile className="text-brand" size={20} />
               <h4>Curated Interactive Highlights & Games</h4>
             </div>
-            <button 
+            <button
               className="btn btn-ghost btn-sm text-brand"
-              onClick={() => onAskAI(`Generate 3 more engaging, interactive crowd activities for ${event.type} tailored for ${event.targetGuests} guests.`)}
+              onClick={() =>
+                onAskAI(
+                  `Generate 3 more engaging, interactive crowd activities for ${event.type} tailored for ${event.targetGuests} guests.`
+                )
+              }
             >
               <Sparkles size={14} />
               <span>More Activities</span>
@@ -138,9 +149,13 @@ export const IdeasMoodboardTab: React.FC<IdeasMoodboardTabProps> = ({
               <MessageSquare className="text-brand" size={20} />
               <h4>AI-Crafted Speeches & Toasts</h4>
             </div>
-            <button 
+            <button
               className="btn btn-ghost btn-sm text-brand"
-              onClick={() => onAskAI(`Draft a new humorous and heartwarming toast for ${event.title} celebrating our guests and host.`)}
+              onClick={() =>
+                onAskAI(
+                  `Draft a new humorous and heartwarming toast for ${event.title} celebrating our guests and host.`
+                )
+              }
             >
               <Sparkles size={14} />
               <span>New Speech</span>
@@ -157,7 +172,7 @@ export const IdeasMoodboardTab: React.FC<IdeasMoodboardTabProps> = ({
                       <h5>{sp.title}</h5>
                       <span className="speech-role">Speaker Role: {sp.role}</span>
                     </div>
-                    <button 
+                    <button
                       className="btn btn-secondary btn-sm"
                       onClick={() => handleCopySpeech(sp.text, idx)}
                       aria-label="Copy speech text"
@@ -166,9 +181,7 @@ export const IdeasMoodboardTab: React.FC<IdeasMoodboardTabProps> = ({
                       <span>{isCopied ? 'Copied!' : 'Copy Toast'}</span>
                     </button>
                   </div>
-                  <blockquote className="speech-quote">
-                    "{sp.text}"
-                  </blockquote>
+                  <blockquote className="speech-quote">"{sp.text}"</blockquote>
                 </div>
               );
             })}
@@ -206,7 +219,9 @@ export const IdeasMoodboardTab: React.FC<IdeasMoodboardTabProps> = ({
             </div>
           </div>
 
-          <p className="playlist-mood-desc"><strong>Mood Arc:</strong> {ideas.playlistVibe.mood}</p>
+          <p className="playlist-mood-desc">
+            <strong>Mood Arc:</strong> {ideas.playlistVibe.mood}
+          </p>
 
           <div className="sample-tracks-container">
             <span className="tracks-label">Recommended Anchor Tracks:</span>

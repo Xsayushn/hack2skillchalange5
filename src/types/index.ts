@@ -1,12 +1,7 @@
-export type EventType = 
-  | 'wedding' 
-  | 'birthday' 
-  | 'community' 
-  | 'corporate' 
-  | 'anniversary' 
-  | 'festival';
+export type EventType =
+  'wedding' | 'birthday' | 'community' | 'corporate' | 'anniversary' | 'festival';
 
-export type BudgetCategory = 
+export type BudgetCategory =
   | 'Venue & Rentals'
   | 'Catering & Bar'
   | 'Photography & Video'
@@ -32,11 +27,11 @@ export interface BudgetItem {
   notes?: string;
 }
 
-export type TimelinePhase = 
+export type TimelinePhase =
   | 'foundation' // Months before
-  | 'bookings'   // Weeks before
+  | 'bookings' // Weeks before
   | 'final_prep' // Week/Days before
-  | 'day_of';    // Day of event (Run of Show)
+  | 'day_of'; // Day of event (Run of Show)
 
 export interface TimelineItem {
   id: string;
@@ -140,4 +135,24 @@ export interface AISettings {
   apiKey: string;
   model: string;
   useOfflineFallback: boolean;
+}
+
+export interface GenerateEventParams {
+  title: string;
+  type: EventType;
+  date: string;
+  targetGuests: number;
+  location: string;
+  vibe: string;
+  totalBudget: number;
+  currency: string;
+  currencySymbol: string;
+  priorityFocus?: 'catering' | 'entertainment' | 'decor' | 'photo' | 'balanced';
+  dietaryOrSpecialNotes?: string;
+}
+
+export interface PlanGenerationResult {
+  plan: EventPlan;
+  source: 'live-gemini' | 'autonomous-heuristics';
+  errorNotice?: string;
 }

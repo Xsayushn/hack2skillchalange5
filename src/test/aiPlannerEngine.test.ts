@@ -1,5 +1,12 @@
-import { describe, it, expect } from 'vitest';
-import { aiPlannerEngine } from '../services/aiPlannerEngine';
+import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { aiPlannerEngine, DEFAULT_AI_MODEL } from '../services/aiPlannerEngine';
+import {
+  generateBudgetBreakdown,
+  generatePhasedTimeline,
+  generateVendors,
+  generateCreativeIdeas
+} from '../services/heuristicGenerators';
+import { autonomousAgentRespond, calculateDaysRemaining } from '../services/autonomousAssistant';
 import { INITIAL_EVENTS } from '../data/mockEvents';
 
 describe('aiPlannerEngine - Event Architecture & Domain Logic', () => {
@@ -26,18 +33,17 @@ describe('aiPlannerEngine - Event Architecture & Domain Logic', () => {
     // Validate budget items
     expect(plan.budgetItems.length).toBeGreaterThan(5);
     const sumEstimated = plan.budgetItems.reduce((acc, b) => acc + b.estimatedCost, 0);
-    // Sum of budget items should approximate total budget within rounding tolerance
     expect(Math.abs(sumEstimated - 40000)).toBeLessThanOrEqual(50);
 
     // Validate catering gets prioritized
-    const cateringItem = plan.budgetItems.find(b => b.category === 'Catering & Bar');
+    const cateringItem = plan.budgetItems.find((b) => b.category === 'Catering & Bar');
     expect(cateringItem).toBeDefined();
     expect(cateringItem!.estimatedCost).toBeGreaterThan(12000);
 
     // Validate timeline phases
-    expect(plan.timelineItems.some(t => t.phase === 'foundation')).toBe(true);
-    expect(plan.timelineItems.some(t => t.phase === 'bookings')).toBe(true);
-    expect(plan.timelineItems.some(t => t.phase === 'day_of')).toBe(true);
+    expect(plan.timelineItems.some((t) => t.phase === 'foundation')).toBe(true);
+    expect(plan.timelineItems.some((t) => t.phase === 'bookings')).toBe(true);
+    expect(plan.timelineItems.some((t) => t.phase === 'day_of')).toBe(true);
 
     // Validate creative concepts
     expect(plan.personalizedIdeas.themeName).toBeDefined();
@@ -62,12 +68,10 @@ describe('aiPlannerEngine - Event Architecture & Domain Logic', () => {
     expect(plan.type).toBe('birthday');
     expect(plan.targetGuests).toBe(30);
 
-    // Entertainment should be heavily allocated
-    const entertainmentItem = plan.budgetItems.find(b => b.category === 'Music & Entertainment');
+    const entertainmentItem = plan.budgetItems.find((b) => b.category === 'Music & Entertainment');
     expect(entertainmentItem).toBeDefined();
     expect(entertainmentItem!.estimatedCost).toBeGreaterThanOrEqual(400);
 
-    // Personalized ideas check
     expect(plan.personalizedIdeas.activities.length).toBeGreaterThanOrEqual(1);
     expect(plan.personalizedIdeas.activities[0].name).toBeDefined();
   });
@@ -86,24 +90,53 @@ describe('aiPlannerEngine - Event Architecture & Domain Logic', () => {
     });
 
     expect(plan.type).toBe('community');
-    // Must include Logistics & Permits
-    const permitsItem = plan.budgetItems.find(b => b.category === 'Logistics & Permits');
+    const permitsItem = plan.budgetItems.find((b) => b.category === 'Logistics & Permits');
     expect(permitsItem).toBeDefined();
     expect(permitsItem!.estimatedCost).toBeGreaterThan(500);
 
-    // Timeline must include municipal permits
-    expect(plan.timelineItems.some(t => t.title.toLowerCase().includes('permit') || t.title.toLowerCase().includes('council'))).toBe(true);
+    expect(
+      plan.timelineItems.some(
+        (t) => t.title.toLowerCase().includes('permit') || t.title.toLowerCase().includes('council')
+      )
+    ).toBe(true);
+  });
+
+  it('directly invokes heuristicGenerators and validates domain physics', () => {
+    const params = {
+      title: 'Direct Heuristic Test',
+      type: 'wedding' as const,
+      date: '2026-12-01',
+      targetGuests: 80,
+      location: 'Estate',
+      vibe: 'Classic',
+      totalBudget: 20000,
+      currency: 'USD',
+      currencySymbol: '$'
+    };
+
+    const budget = generateBudgetBreakdown(params);
+    expect(budget.length).toBeGreaterThan(3);
+
+    const timeline = generatePhasedTimeline(params);
+    expect(timeline.length).toBeGreaterThan(5);
+
+    const vendors = generateVendors(params, budget);
+    expect(vendors.length).toBeGreaterThanOrEqual(3);
+
+    const ideas = generateCreativeIdeas(params);
+    expect(ideas.themeName).toBeDefined();
+    expect(ideas.colorPalette.length).toBeGreaterThanOrEqual(3);
   });
 });
 
 describe('aiPlannerEngine - Autonomous Assistant Reasoning', () => {
-  const sampleEvent = INITIAL_EVENTS[0]; // Elena & Liam's Wedding
+  const sampleEvent = INITIAL_EVENTS[0];
 
   it('provides strategic budget trimming recommendations', async () => {
     const res = await aiPlannerEngine.askAssistant(
       'Can you help us trim our wedding budget?',
       sampleEvent,
-      { apiKey: '', model: 'gemini-1.5-flash', useOfflineFallback: true }
+      { apiKey: '', model: DEFAULT_AI_MODEL, useOfflineFallback: true }
     );
 
     expect(res.text).toContain('Budget Optimization Report');
@@ -116,7 +149,7 @@ describe('aiPlannerEngine - Autonomous Assistant Reasoning', () => {
     const res = await aiPlannerEngine.askAssistant(
       'What is our day-of timeline and schedule?',
       sampleEvent,
-      { apiKey: '', model: 'gemini-1.5-flash', useOfflineFallback: true }
+      { apiKey: '', model: DEFAULT_AI_MODEL, useOfflineFallback: true }
     );
 
     expect(res.text).toContain('Day-of Run of Show Blueprint');
@@ -127,7 +160,7 @@ describe('aiPlannerEngine - Autonomous Assistant Reasoning', () => {
     const res = await aiPlannerEngine.askAssistant(
       'Write a warm toast speech for the reception',
       sampleEvent,
-      { apiKey: '', model: 'gemini-1.5-flash', useOfflineFallback: true }
+      { apiKey: '', model: DEFAULT_AI_MODEL, useOfflineFallback: true }
     );
 
     expect(res.text).toContain('Toast & Speech Template');
@@ -138,7 +171,7 @@ describe('aiPlannerEngine - Autonomous Assistant Reasoning', () => {
     const res = await aiPlannerEngine.askAssistant(
       'What questions should I ask vendors before signing contracts?',
       sampleEvent,
-      { apiKey: '', model: 'gemini-1.5-flash', useOfflineFallback: true }
+      { apiKey: '', model: DEFAULT_AI_MODEL, useOfflineFallback: true }
     );
 
     expect(res.text).toContain('Vendor Master Checklist & Negotiation');
@@ -149,10 +182,153 @@ describe('aiPlannerEngine - Autonomous Assistant Reasoning', () => {
     const res = await aiPlannerEngine.askAssistant(
       'How to handle catering menu and dietary restrictions for 150 guests?',
       sampleEvent,
-      { apiKey: '', model: 'gemini-1.5-flash', useOfflineFallback: true }
+      { apiKey: '', model: DEFAULT_AI_MODEL, useOfflineFallback: true }
     );
 
     expect(res.text).toContain('Inclusive Menu & Dietary');
     expect(res.text).toContain('150');
+  });
+
+  it('directly tests autonomousAssistant module exports', () => {
+    const days = calculateDaysRemaining('2026-12-31');
+    expect(typeof days).toBe('number');
+
+    const offlineResponse = autonomousAgentRespond('cost trimming advice', sampleEvent);
+    expect(offlineResponse.text).toContain('Budget Optimization Report');
+  });
+});
+
+describe('aiPlannerEngine - Live Gemini API Path & Security', () => {
+  const originalFetch = global.fetch;
+
+  beforeEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  afterEach(() => {
+    global.fetch = originalFetch;
+  });
+
+  it('successfully generates plan via live Gemini API with header authentication', async () => {
+    const mockPlanJson = {
+      themeName: 'Celestial Starlight Wonder',
+      themeDescription: 'A starry, luminescent evening under glowing fairy lights.',
+      colorPalette: [
+        { name: 'Starlight Gold', hex: '#fbbf24' },
+        { name: 'Cosmic Blue', hex: '#1e3a8a' },
+        { name: 'Midnight', hex: '#0f172a' }
+      ],
+      activities: [
+        {
+          name: 'Constellation Viewing',
+          description: 'Telescope stations',
+          targetAudience: 'All',
+          duration: '60 mins'
+        }
+      ],
+      cateringHighlights: ['Galactic cocktails', 'Starlight dessert bar'],
+      playlistVibe: { mood: 'Ethereal & Upbeat', sampleTracks: ['A Sky Full of Stars'] },
+      customSpeeches: [{ title: 'Welcome Toast', role: 'Host', text: 'Welcome under the stars!' }],
+      costSavingTips: ['Use fairy lights instead of heavy floral arches'],
+      decorSuggestions: ['Glow in the dark accents']
+    };
+
+    let capturedUrl = '';
+    let capturedHeaders: Record<string, string> = {};
+
+    global.fetch = vi.fn().mockImplementation(async (url: string, init?: RequestInit) => {
+      capturedUrl = url;
+      capturedHeaders = (init?.headers as Record<string, string>) || {};
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({
+          candidates: [
+            {
+              content: {
+                parts: [{ text: JSON.stringify(mockPlanJson) }]
+              }
+            }
+          ]
+        })
+      };
+    });
+
+    const params = {
+      title: 'Starlight Gala',
+      type: 'wedding' as const,
+      date: '2026-10-25',
+      targetGuests: 100,
+      location: 'Observatory Hill',
+      vibe: 'Starry & Enchanted',
+      totalBudget: 25000,
+      currency: 'USD',
+      currencySymbol: '$'
+    };
+
+    const result = await aiPlannerEngine.generateEventPlanWithMeta(params, {
+      apiKey: 'AIzaSyFakeKeyForTesting12345678',
+      model: DEFAULT_AI_MODEL,
+      useOfflineFallback: true
+    });
+
+    expect(result.source).toBe('live-gemini');
+    expect(result.plan.personalizedIdeas.themeName).toBe('Celestial Starlight Wonder');
+    expect(capturedUrl).toContain(DEFAULT_AI_MODEL);
+    expect(capturedHeaders['x-goog-api-key']).toBe('AIzaSyFakeKeyForTesting12345678');
+    // Ensure API key is NEVER leaked in URL query parameters
+    expect(capturedUrl).not.toContain('key=');
+  });
+
+  it('falls back safely to autonomous heuristics with visible notice when live call fails', async () => {
+    global.fetch = vi.fn().mockRejectedValue(new Error('Network error or rate limit 429'));
+
+    const params = {
+      title: 'Gala with Fallback',
+      type: 'wedding' as const,
+      date: '2026-10-25',
+      targetGuests: 100,
+      location: 'Grand Ballroom',
+      vibe: 'Opulent',
+      totalBudget: 30000,
+      currency: 'USD',
+      currencySymbol: '$'
+    };
+
+    const result = await aiPlannerEngine.generateEventPlanWithMeta(params, {
+      apiKey: 'AIzaSyFakeKeyForTesting12345678',
+      model: DEFAULT_AI_MODEL,
+      useOfflineFallback: true
+    });
+
+    expect(result.source).toBe('autonomous-heuristics');
+    expect(result.errorNotice).toBeDefined();
+    expect(result.errorNotice).toContain('Live Gemini API call failed');
+    expect(result.plan.id).toBeDefined();
+    expect(result.plan.budgetItems.length).toBeGreaterThan(0);
+  });
+
+  it('throws error when live call fails and useOfflineFallback is false', async () => {
+    global.fetch = vi.fn().mockRejectedValue(new Error('Gemini API 500 internal server error'));
+
+    const params = {
+      title: 'Strict Mode Gala',
+      type: 'wedding' as const,
+      date: '2026-10-25',
+      targetGuests: 50,
+      location: 'Hall',
+      vibe: 'Formal',
+      totalBudget: 10000,
+      currency: 'USD',
+      currencySymbol: '$'
+    };
+
+    await expect(
+      aiPlannerEngine.generateEventPlanWithMeta(params, {
+        apiKey: 'AIzaSyFakeKeyForTesting12345678',
+        model: DEFAULT_AI_MODEL,
+        useOfflineFallback: false
+      })
+    ).rejects.toThrow('Gemini API 500 internal server error');
   });
 });

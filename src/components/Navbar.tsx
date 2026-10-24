@@ -1,18 +1,19 @@
 import React, { useState } from 'react';
-import { 
-  Sparkles, 
-  Calendar, 
-  PlusCircle, 
-  Sun, 
-  Moon, 
-  Eye, 
-  Settings, 
-  Download, 
-  FileText, 
+import {
+  Sparkles,
+  Calendar,
+  PlusCircle,
+  Sun,
+  Moon,
+  Eye,
+  Settings,
+  Download,
+  FileText,
   RotateCcw,
   Check
 } from 'lucide-react';
 import { EventPlan } from '../types';
+import '../styles/navbar.css';
 import { exportService } from '../services/exportService';
 
 interface NavbarProps {
@@ -82,9 +83,9 @@ export const Navbar: React.FC<NavbarProps> = ({
       <div className="navbar-center">
         <div className="event-selector-wrapper">
           <Calendar size={16} className="text-muted" aria-hidden="true" />
-          <select 
-            className="event-dropdown" 
-            value={activeEvent.id} 
+          <select
+            className="event-dropdown"
+            value={activeEvent.id}
             onChange={(e) => onSelectEvent(e.target.value)}
             aria-label="Select active event plan"
           >
@@ -96,7 +97,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           </select>
         </div>
 
-        <button 
+        <button
           className="btn btn-primary btn-sm wizard-launch-btn"
           onClick={onOpenWizard}
           aria-label="Launch AI Event Wizard to create a new celebration"
@@ -110,7 +111,7 @@ export const Navbar: React.FC<NavbarProps> = ({
       <div className="navbar-actions">
         {/* Export / Share Dropdown */}
         <div className="export-menu-container">
-          <button 
+          <button
             className="btn btn-secondary btn-sm"
             onClick={() => setExportOpen(!exportOpen)}
             aria-expanded={exportOpen}
@@ -158,7 +159,11 @@ export const Navbar: React.FC<NavbarProps> = ({
               <div className="dropdown-divider" />
 
               <button className="dropdown-item" onClick={handleCopyShareLink} role="menuitem">
-                {copiedNotification ? <Check size={16} className="text-emerald" /> : <Sparkles size={16} />}
+                {copiedNotification ? (
+                  <Check size={16} className="text-emerald" />
+                ) : (
+                  <Sparkles size={16} />
+                )}
                 <div>
                   <strong>{copiedNotification ? 'Link Copied!' : 'Copy App Link'}</strong>
                   <small>Share with co-planners</small>
@@ -169,18 +174,24 @@ export const Navbar: React.FC<NavbarProps> = ({
         </div>
 
         {/* Theme Mode Switcher */}
-        <button 
-          className="btn btn-ghost btn-sm icon-only" 
+        <button
+          className="btn btn-ghost btn-sm icon-only"
           onClick={onToggleTheme}
           title={`Switch Theme (Current: ${theme})`}
           aria-label={`Toggle theme mode. Current: ${theme}`}
         >
-          {theme === 'dark' ? <Sun size={17} /> : theme === 'light' ? <Eye size={17} /> : <Moon size={17} />}
+          {theme === 'dark' ? (
+            <Sun size={17} />
+          ) : theme === 'light' ? (
+            <Eye size={17} />
+          ) : (
+            <Moon size={17} />
+          )}
         </button>
 
         {/* Reset Demo Data */}
-        <button 
-          className="btn btn-ghost btn-sm icon-only" 
+        <button
+          className="btn btn-ghost btn-sm icon-only"
           onClick={onResetData}
           title="Reset to Starter Events"
           aria-label="Reset workspace to default demo events"
@@ -189,8 +200,8 @@ export const Navbar: React.FC<NavbarProps> = ({
         </button>
 
         {/* Settings */}
-        <button 
-          className="btn btn-ghost btn-sm icon-only" 
+        <button
+          className="btn btn-ghost btn-sm icon-only"
           onClick={onOpenSettings}
           title="AI Settings & API Keys"
           aria-label="Open AI Settings"

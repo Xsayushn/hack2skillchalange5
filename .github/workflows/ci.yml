@@ -30,6 +30,9 @@ jobs:
       - name: Run ESLint
         run: npm run lint
 
+      - name: Check code formatting (Prettier)
+        run: npm run format:check
+
       - name: Compile TypeScript & build bundle
         run: npm run build
 

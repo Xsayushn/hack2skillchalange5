@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Sparkles } from 'lucide-react';
 import { EventPlan, BudgetItem } from '../types';
 import { CURRENCIES } from './budget/budgetConstants';
 import { BudgetDonutChart } from './budget/BudgetDonutChart';
 import { ExpenseTable } from './budget/ExpenseTable';
 import { AddExpenseModal } from './budget/AddExpenseModal';
+import '../styles/budget.css';
 
 interface BudgetTabProps {
   event: EventPlan;
@@ -12,30 +13,33 @@ interface BudgetTabProps {
   onAskAI: (prompt: string) => void;
 }
 
-export const BudgetTab: React.FC<BudgetTabProps> = ({
-  event,
-  onUpdateEvent,
-  onAskAI
-}) => {
+export const BudgetTab: React.FC<BudgetTabProps> = ({ event, onUpdateEvent, onAskAI }) => {
   const [filterCategory, setFilterCategory] = useState<string>('all');
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [showAddModal, setShowAddModal] = useState<boolean>(false);
 
-  // Calculations
+  // Memoized Calculations
   const totalBudget = event.totalBudget || 1;
-  const committedTotal = event.budgetItems.reduce((acc, b) => acc + (b.actualCost || b.estimatedCost), 0);
-  const paidTotal = event.budgetItems.reduce((acc, b) => acc + b.paidCost, 0);
+  const committedTotal = useMemo(
+    () => event.budgetItems.reduce((acc, b) => acc + (b.actualCost || b.estimatedCost), 0),
+    [event.budgetItems]
+  );
+  const paidTotal = useMemo(
+    () => event.budgetItems.reduce((acc, b) => acc + b.paidCost, 0),
+    [event.budgetItems]
+  );
   const balance = totalBudget - committedTotal;
   const isOverBudget = balance < 0;
 
-  // Category aggregations for SVG Donut
-  const categoryMap: Record<string, number> = {};
-  event.budgetItems.forEach(b => {
-    const cost = b.actualCost || b.estimatedCost;
-    categoryMap[b.category] = (categoryMap[b.category] || 0) + cost;
-  });
-
-  const categoryEntries = Object.entries(categoryMap).filter(([_, val]) => val > 0);
+  // Memoized Category aggregations for SVG Donut
+  const categoryEntries = useMemo(() => {
+    const categoryMap: Record<string, number> = {};
+    event.budgetItems.forEach((b) => {
+      const cost = b.actualCost || b.estimatedCost;
+      categoryMap[b.category] = (categoryMap[b.category] || 0) + cost;
+    });
+    return Object.entries(categoryMap).filter(([_, val]) => val > 0);
+  }, [event.budgetItems]);
 
   // Handler for adding line item
   const handleAddItem = (item: Omit<BudgetItem, 'id'>) => {
@@ -56,7 +60,7 @@ export const BudgetTab: React.FC<BudgetTabProps> = ({
   const handleDeleteItem = (id: string) => {
     const updated = {
       ...event,
-      budgetItems: event.budgetItems.filter(b => b.id !== id),
+      budgetItems: event.budgetItems.filter((b) => b.id !== id),
       updatedAt: new Date().toISOString()
     };
     onUpdateEvent(updated);
@@ -66,7 +70,7 @@ export const BudgetTab: React.FC<BudgetTabProps> = ({
   const handleUpdateItem = (id: string, updates: Partial<BudgetItem>) => {
     const updated = {
       ...event,
-      budgetItems: event.budgetItems.map(b => b.id === id ? { ...b, ...updates } : b),
+      budgetItems: event.budgetItems.map((b) => (b.id === id ? { ...b, ...updates } : b)),
       updatedAt: new Date().toISOString()
     };
     onUpdateEvent(updated);
@@ -82,7 +86,7 @@ export const BudgetTab: React.FC<BudgetTabProps> = ({
   };
 
   const handleCurrencyChange = (currCode: string) => {
-    const match = CURRENCIES.find(c => c.code === currCode);
+    const match = CURRENCIES.find((c) => c.code === currCode);
     if (match) {
       onUpdateEvent({
         ...event,
@@ -93,12 +97,14 @@ export const BudgetTab: React.FC<BudgetTabProps> = ({
     }
   };
 
-  // Filter items
-  const filteredItems = event.budgetItems.filter(b => {
-    if (filterCategory !== 'all' && b.category !== filterCategory) return false;
-    if (filterStatus !== 'all' && b.status !== filterStatus) return false;
-    return true;
-  });
+  // Memoized Filter items
+  const filteredItems = useMemo(() => {
+    return event.budgetItems.filter((b) => {
+      if (filterCategory !== 'all' && b.category !== filterCategory) return false;
+      if (filterStatus !== 'all' && b.status !== filterStatus) return false;
+      return true;
+    });
+  }, [event.budgetItems, filterCategory, filterStatus]);
 
   return (
     <div className="budget-tab-container">
@@ -108,21 +114,23 @@ export const BudgetTab: React.FC<BudgetTabProps> = ({
           <div className="stat-card-header">
             <span className="stat-card-title">Target Budget</span>
             <div className="currency-selector-mini">
-              <select 
-                value={event.currency} 
+              <select
+                value={event.currency}
                 onChange={(e) => handleCurrencyChange(e.target.value)}
                 aria-label="Currency selector"
               >
-                {CURRENCIES.map(c => (
-                  <option key={c.code} value={c.code}>{c.code} ({c.symbol})</option>
+                {CURRENCIES.map((c) => (
+                  <option key={c.code} value={c.code}>
+                    {c.code} ({c.symbol})
+                  </option>
                 ))}
               </select>
             </div>
           </div>
           <div className="editable-budget-row">
             <span className="stat-symbol">{event.currencySymbol}</span>
-            <input 
-              type="number" 
+            <input
+              type="number"
               className="stat-input-number"
               value={event.totalBudget}
               onChange={(e) => handleTotalBudgetChange(Number(e.target.value))}
@@ -137,7 +145,8 @@ export const BudgetTab: React.FC<BudgetTabProps> = ({
         <div className="glass-card stat-card">
           <span className="stat-card-title">Committed / Actual</span>
           <div className="stat-value text-brand">
-            {event.currencySymbol}{committedTotal.toLocaleString()}
+            {event.currencySymbol}
+            {committedTotal.toLocaleString()}
           </div>
           <span className="stat-card-hint">
             {Math.round((committedTotal / totalBudget) * 100)}% of total target
@@ -147,17 +156,22 @@ export const BudgetTab: React.FC<BudgetTabProps> = ({
         <div className="glass-card stat-card">
           <span className="stat-card-title">Paid Out</span>
           <div className="stat-value text-emerald">
-            {event.currencySymbol}{paidTotal.toLocaleString()}
+            {event.currencySymbol}
+            {paidTotal.toLocaleString()}
           </div>
           <span className="stat-card-hint">
-            {committedTotal > 0 ? `${Math.round((paidTotal / committedTotal) * 100)}% of committed cleared` : 'No expenses yet'}
+            {committedTotal > 0
+              ? `${Math.round((paidTotal / committedTotal) * 100)}% of committed cleared`
+              : 'No expenses yet'}
           </span>
         </div>
 
         <div className="glass-card stat-card">
           <span className="stat-card-title">Remaining Buffer</span>
           <div className={`stat-value ${isOverBudget ? 'text-danger' : 'text-emerald'}`}>
-            {isOverBudget ? '-' : ''}{event.currencySymbol}{Math.abs(balance).toLocaleString()}
+            {isOverBudget ? '-' : ''}
+            {event.currencySymbol}
+            {Math.abs(balance).toLocaleString()}
           </div>
           <span className="stat-card-hint">
             {isOverBudget ? 'Exceeding budget target' : 'Safe reserve available'}
@@ -169,7 +183,9 @@ export const BudgetTab: React.FC<BudgetTabProps> = ({
       <div className="budget-visual-grid glass-card">
         <div className="chart-col">
           <h4>Spend Allocation by Category</h4>
-          <p className="card-sub-text">Hover or review proportional investments across categories</p>
+          <p className="card-sub-text">
+            Hover or review proportional investments across categories
+          </p>
 
           <BudgetDonutChart
             categoryEntries={categoryEntries}
@@ -186,18 +202,27 @@ export const BudgetTab: React.FC<BudgetTabProps> = ({
           </div>
           <h5>Need to optimize allocations?</h5>
           <p>
-            CelebrAIte continuously analyzes your numbers against benchmarks for a {event.type} with {event.targetGuests} guests.
+            CelebrAIte continuously analyzes your numbers against benchmarks for a {event.type} with{' '}
+            {event.targetGuests} guests.
           </p>
           <div className="ai-box-actions">
-            <button 
+            <button
               className="btn btn-secondary btn-sm"
-              onClick={() => onAskAI(`Analyze our current budget items for ${event.title} totaling ${event.currencySymbol}${committedTotal}. Give us 3 concrete places to trim costs without ruining guest experience.`)}
+              onClick={() =>
+                onAskAI(
+                  `Analyze our current budget items for ${event.title} totaling ${event.currencySymbol}${committedTotal}. Give us 3 concrete places to trim costs without ruining guest experience.`
+                )
+              }
             >
               Analyze & Trim Budget
             </button>
-            <button 
+            <button
               className="btn btn-ghost btn-sm"
-              onClick={() => onAskAI(`What are common hidden vendor charges or surprise expenses for a ${event.type} in ${event.location}?`)}
+              onClick={() =>
+                onAskAI(
+                  `What are common hidden vendor charges or surprise expenses for a ${event.type} in ${event.location}?`
+                )
+              }
             >
               Expose Hidden Vendor Fees
             </button>

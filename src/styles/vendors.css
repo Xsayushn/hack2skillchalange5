@@ -1,0 +1,174 @@
+/* ==========================================================================
+   Vendors Tab
+   ========================================================================== */
+.vendors-tab-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.vendors-top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.vendors-meta-title {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.vendor-filter-bar {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+}
+
+.filter-chip {
+  padding: 6px 14px;
+  border-radius: var(--radius-full);
+  background: var(--bg-glass-card);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.filter-chip.active {
+  background: var(--brand-primary);
+  color: #fff;
+  border-color: var(--brand-primary);
+}
+
+.vendors-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: 20px;
+}
+
+.vendor-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.vendor-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.vendor-category-tag {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--brand-primary);
+  letter-spacing: 0.05em;
+}
+
+.vendor-name-title {
+  font-size: 1.15rem;
+  margin: 2px 0;
+}
+
+.vendor-contact-person {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.vendor-status-select {
+  background: var(--bg-glass-card);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-primary);
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  outline: none;
+}
+
+.vendor-pricing-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--bg-glass-card);
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+}
+
+.vendor-status-pill {
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.vendor-numbers-box {
+  display: flex;
+  gap: 12px;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.vendor-contact-details {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-size: 0.82rem;
+}
+
+.contact-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-secondary);
+  text-decoration: none;
+}
+.contact-link:hover {
+  color: var(--brand-primary);
+}
+
+.vendor-notes-box {
+  background: var(--bg-glass-card);
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+}
+
+.vendor-questions-container {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border-top: 1px solid var(--border-subtle);
+  padding-top: 10px;
+}
+
+.questions-title-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.questions-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.question-list-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.bullet-dot {
+  color: var(--brand-primary);
+}

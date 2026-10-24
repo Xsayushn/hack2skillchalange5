@@ -1,15 +1,16 @@
 import React from 'react';
-import { 
-  Sparkles, 
-  CheckCircle2, 
-  Circle, 
-  ArrowRight, 
+import {
+  Sparkles,
+  CheckCircle2,
+  Circle,
+  ArrowRight,
   TrendingUp,
   AlertTriangle,
   Lightbulb
 } from 'lucide-react';
 import { EventPlan, TimelineItem } from '../types';
 import { TabType } from './EventHeader';
+import '../styles/overview.css';
 
 interface OverviewTabProps {
   event: EventPlan;
@@ -31,11 +32,11 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
   const isOverBudget = remaining < 0;
 
   // Next 5 pending timeline items
-  const upcomingTasks = event.timelineItems.filter(t => !t.completed).slice(0, 5);
+  const upcomingTasks = event.timelineItems.filter((t) => !t.completed).slice(0, 5);
 
   // Group budget by categories for quick visualization
   const categoryTotals: Record<string, number> = {};
-  event.budgetItems.forEach(item => {
+  event.budgetItems.forEach((item) => {
     const cost = item.actualCost || item.estimatedCost;
     categoryTotals[item.category] = (categoryTotals[item.category] || 0) + cost;
   });
@@ -51,11 +52,16 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
         <div className="alert-banner alert-warning">
           <AlertTriangle className="alert-icon" size={20} />
           <div className="alert-content">
-            <strong>Budget Allocation Exceeded:</strong> You are currently {event.currencySymbol}{Math.abs(remaining).toLocaleString()} over your initial target budget.
+            <strong>Budget Allocation Exceeded:</strong> You are currently {event.currencySymbol}
+            {Math.abs(remaining).toLocaleString()} over your initial target budget.
           </div>
-          <button 
+          <button
             className="btn btn-secondary btn-sm"
-            onClick={() => onAskAI("Analyze our budget allocations and suggest 4 high-impact areas to trim expenses.")}
+            onClick={() =>
+              onAskAI(
+                'Analyze our budget allocations and suggest 4 high-impact areas to trim expenses.'
+              )
+            }
           >
             <Sparkles size={14} />
             Ask AI to Trim Budget
@@ -65,11 +71,16 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
         <div className="alert-banner alert-success">
           <TrendingUp className="alert-icon" size={20} />
           <div className="alert-content">
-            <strong>Budget On Track:</strong> You have {event.currencySymbol}{remaining.toLocaleString()} {event.currency} uncommitted buffer remaining.
+            <strong>Budget On Track:</strong> You have {event.currencySymbol}
+            {remaining.toLocaleString()} {event.currency} uncommitted buffer remaining.
           </div>
-          <button 
+          <button
             className="btn btn-ghost btn-sm"
-            onClick={() => onAskAI("How should we allocate our remaining budget buffer for maximum guest delight?")}
+            onClick={() =>
+              onAskAI(
+                'How should we allocate our remaining budget buffer for maximum guest delight?'
+              )
+            }
           >
             <Lightbulb size={14} />
             AI Buffer Suggestions
@@ -86,7 +97,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
               <h3>Financial Pulse</h3>
               <p className="card-sub-text">Real-time expense commitments vs target budget</p>
             </div>
-            <button 
+            <button
               className="btn btn-ghost btn-sm text-brand"
               onClick={() => onNavigateTab('budget')}
             >
@@ -98,20 +109,30 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
           <div className="financial-stats-box">
             <div className="stat-pill">
               <span className="pill-title">Total Target</span>
-              <span className="pill-val">{event.currencySymbol}{totalBudget.toLocaleString()}</span>
+              <span className="pill-val">
+                {event.currencySymbol}
+                {totalBudget.toLocaleString()}
+              </span>
             </div>
             <div className="stat-pill">
               <span className="pill-title">Committed</span>
-              <span className="pill-val text-brand">{event.currencySymbol}{spent.toLocaleString()}</span>
+              <span className="pill-val text-brand">
+                {event.currencySymbol}
+                {spent.toLocaleString()}
+              </span>
             </div>
             <div className="stat-pill">
               <span className="pill-title">Paid Out</span>
-              <span className="pill-val text-emerald">{event.currencySymbol}{paid.toLocaleString()}</span>
+              <span className="pill-val text-emerald">
+                {event.currencySymbol}
+                {paid.toLocaleString()}
+              </span>
             </div>
             <div className="stat-pill">
               <span className="pill-title">Remaining Buffer</span>
               <span className={`pill-val ${isOverBudget ? 'text-danger' : 'text-emerald'}`}>
-                {event.currencySymbol}{remaining.toLocaleString()}
+                {event.currencySymbol}
+                {remaining.toLocaleString()}
               </span>
             </div>
           </div>
@@ -127,7 +148,8 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
                     <div className="category-meta-row">
                       <span className="cat-name">{catName}</span>
                       <span className="cat-cost">
-                        {event.currencySymbol}{amount.toLocaleString()} ({pct}%)
+                        {event.currencySymbol}
+                        {amount.toLocaleString()} ({pct}%)
                       </span>
                     </div>
                     <div className="meter-track">
@@ -147,7 +169,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
               <h3>Priority Checklist</h3>
               <p className="card-sub-text">Upcoming critical milestones & countdown</p>
             </div>
-            <button 
+            <button
               className="btn btn-ghost btn-sm text-brand"
               onClick={() => onNavigateTab('timeline')}
             >
@@ -165,12 +187,16 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
             ) : (
               upcomingTasks.map((task: TimelineItem) => (
                 <div key={task.id} className="overview-task-item">
-                  <button 
+                  <button
                     className="task-checkbox-btn"
                     onClick={() => onToggleTimelineItem(task.id)}
                     aria-label={`Mark task "${task.title}" as complete`}
                   >
-                    {task.completed ? <CheckCircle2 className="text-emerald" size={20} /> : <Circle className="text-muted" size={20} />}
+                    {task.completed ? (
+                      <CheckCircle2 className="text-emerald" size={20} />
+                    ) : (
+                      <Circle className="text-muted" size={20} />
+                    )}
                   </button>
                   <div className="task-content-group">
                     <div className="task-title-row">
@@ -195,7 +221,7 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
               <span className="badge badge-neutral">GenAI Aesthetic Blueprint</span>
               <h3>{event.personalizedIdeas.themeName}</h3>
             </div>
-            <button 
+            <button
               className="btn btn-ghost btn-sm text-brand"
               onClick={() => onNavigateTab('ideas')}
             >
@@ -222,30 +248,48 @@ export const OverviewTab: React.FC<OverviewTabProps> = ({
             <Sparkles className="text-brand" size={20} />
             <h4>CelebrAIte Co-Pilot Quick Prompts</h4>
           </div>
-          <p className="launchpad-sub">Context-aware instant recommendations for your {event.type}:</p>
+          <p className="launchpad-sub">
+            Context-aware instant recommendations for your {event.type}:
+          </p>
 
           <div className="prompt-pills-grid">
-            <button 
+            <button
               className="quick-prompt-btn"
-              onClick={() => onAskAI(`What are 5 essential questions to ask our catering vendor for ${event.title}?`)}
+              onClick={() =>
+                onAskAI(
+                  `What are 5 essential questions to ask our catering vendor for ${event.title}?`
+                )
+              }
             >
               🤝 Catering Contract Questions
             </button>
-            <button 
+            <button
               className="quick-prompt-btn"
-              onClick={() => onAskAI(`Draft a 3-minute warm and funny welcome toast for our ${event.targetGuests} guests.`)}
+              onClick={() =>
+                onAskAI(
+                  `Draft a 3-minute warm and funny welcome toast for our ${event.targetGuests} guests.`
+                )
+              }
             >
               🎙️ Draft Welcome Speech
             </button>
-            <button 
+            <button
               className="quick-prompt-btn"
-              onClick={() => onAskAI(`Create an emergency bad weather & delay contingency plan for ${event.location}.`)}
+              onClick={() =>
+                onAskAI(
+                  `Create an emergency bad weather & delay contingency plan for ${event.location}.`
+                )
+              }
             >
               ☔ Rain & Weather Contingency
             </button>
-            <button 
+            <button
               className="quick-prompt-btn"
-              onClick={() => onAskAI(`Suggest 3 interactive crowd icebreakers for ${event.type} at ${event.location}.`)}
+              onClick={() =>
+                onAskAI(
+                  `Suggest 3 interactive crowd icebreakers for ${event.type} at ${event.location}.`
+                )
+              }
             >
               🎉 Interactive Guest Games
             </button>

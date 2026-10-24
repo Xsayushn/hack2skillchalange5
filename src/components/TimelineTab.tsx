@@ -1,18 +1,19 @@
 import React, { useState } from 'react';
-import { 
-  Clock, 
-  Plus, 
-  CheckCircle2, 
-  Circle, 
-  Download, 
-  Sparkles, 
-  Trash2, 
-  CalendarCheck, 
+import {
+  Clock,
+  Plus,
+  CheckCircle2,
+  Circle,
+  Download,
+  Sparkles,
+  Trash2,
+  CalendarCheck,
   Flame
 } from 'lucide-react';
 import { EventPlan, TimelineItem, TimelinePhase } from '../types';
 import { exportService } from '../services/exportService';
 import { useModalA11y } from '../hooks/useModalA11y';
+import '../styles/timeline.css';
 
 interface TimelineTabProps {
   event: EventPlan;
@@ -20,14 +21,13 @@ interface TimelineTabProps {
   onAskAI: (prompt: string) => void;
 }
 
-export const TimelineTab: React.FC<TimelineTabProps> = ({
-  event,
-  onUpdateEvent,
-  onAskAI
-}) => {
+export const TimelineTab: React.FC<TimelineTabProps> = ({ event, onUpdateEvent, onAskAI }) => {
   const [selectedPhase, setSelectedPhase] = useState<string>('all');
   const [showAddModal, setShowAddModal] = useState<boolean>(false);
-  const addModalRef = useModalA11y<HTMLDivElement>({ isOpen: showAddModal, onClose: () => setShowAddModal(false) });
+  const addModalRef = useModalA11y<HTMLDivElement>({
+    isOpen: showAddModal,
+    onClose: () => setShowAddModal(false)
+  });
 
   // Form state
   const [newTitle, setNewTitle] = useState('');
@@ -38,16 +38,34 @@ export const TimelineTab: React.FC<TimelineTabProps> = ({
 
   const phases: { id: string; label: string; count: number }[] = [
     { id: 'all', label: 'All Items', count: event.timelineItems.length },
-    { id: 'foundation', label: 'Phase 1: Foundation (Months Out)', count: event.timelineItems.filter(t => t.phase === 'foundation').length },
-    { id: 'bookings', label: 'Phase 2: Bookings (Weeks Out)', count: event.timelineItems.filter(t => t.phase === 'bookings').length },
-    { id: 'final_prep', label: 'Phase 3: Final Prep (Days Before)', count: event.timelineItems.filter(t => t.phase === 'final_prep').length },
-    { id: 'day_of', label: 'Phase 4: Day-of Run of Show', count: event.timelineItems.filter(t => t.phase === 'day_of').length }
+    {
+      id: 'foundation',
+      label: 'Phase 1: Foundation (Months Out)',
+      count: event.timelineItems.filter((t) => t.phase === 'foundation').length
+    },
+    {
+      id: 'bookings',
+      label: 'Phase 2: Bookings (Weeks Out)',
+      count: event.timelineItems.filter((t) => t.phase === 'bookings').length
+    },
+    {
+      id: 'final_prep',
+      label: 'Phase 3: Final Prep (Days Before)',
+      count: event.timelineItems.filter((t) => t.phase === 'final_prep').length
+    },
+    {
+      id: 'day_of',
+      label: 'Phase 4: Day-of Run of Show',
+      count: event.timelineItems.filter((t) => t.phase === 'day_of').length
+    }
   ];
 
   const handleToggle = (id: string) => {
     const updated = {
       ...event,
-      timelineItems: event.timelineItems.map(t => t.id === id ? { ...t, completed: !t.completed } : t),
+      timelineItems: event.timelineItems.map((t) =>
+        t.id === id ? { ...t, completed: !t.completed } : t
+      ),
       updatedAt: new Date().toISOString()
     };
     onUpdateEvent(updated);
@@ -56,7 +74,7 @@ export const TimelineTab: React.FC<TimelineTabProps> = ({
   const handleDelete = (id: string) => {
     const updated = {
       ...event,
-      timelineItems: event.timelineItems.filter(t => t.id !== id),
+      timelineItems: event.timelineItems.filter((t) => t.id !== id),
       updatedAt: new Date().toISOString()
     };
     onUpdateEvent(updated);
@@ -89,12 +107,12 @@ export const TimelineTab: React.FC<TimelineTabProps> = ({
     setShowAddModal(false);
   };
 
-  const filteredItems = event.timelineItems.filter(t => {
+  const filteredItems = event.timelineItems.filter((t) => {
     if (selectedPhase === 'all') return true;
     return t.phase === selectedPhase;
   });
 
-  const completedCount = event.timelineItems.filter(t => t.completed).length;
+  const completedCount = event.timelineItems.filter((t) => t.completed).length;
 
   return (
     <div className="timeline-tab-container">
@@ -105,13 +123,14 @@ export const TimelineTab: React.FC<TimelineTabProps> = ({
           <div>
             <h3>Schedule of Milestones & Run-of-Show</h3>
             <p className="card-sub-text">
-              {completedCount} of {event.timelineItems.length} items checked off ({Math.round((completedCount / (event.timelineItems.length || 1)) * 100)}% complete)
+              {completedCount} of {event.timelineItems.length} items checked off (
+              {Math.round((completedCount / (event.timelineItems.length || 1)) * 100)}% complete)
             </p>
           </div>
         </div>
 
         <div className="timeline-actions-group">
-          <button 
+          <button
             className="btn btn-secondary btn-sm"
             onClick={() => exportService.downloadIcs(event)}
             title="Download .ics Calendar file to sync with Google Calendar or Apple Calendar"
@@ -120,10 +139,7 @@ export const TimelineTab: React.FC<TimelineTabProps> = ({
             <span>Sync to Calendar (.ics)</span>
           </button>
 
-          <button 
-            className="btn btn-primary btn-sm"
-            onClick={() => setShowAddModal(true)}
-          >
+          <button className="btn btn-primary btn-sm" onClick={() => setShowAddModal(true)}>
             <Plus size={15} />
             <span>Add Milestone</span>
           </button>
@@ -132,7 +148,7 @@ export const TimelineTab: React.FC<TimelineTabProps> = ({
 
       {/* Phase Pills Navigation */}
       <div className="phase-pills-row" role="tablist" aria-label="Timeline Phases">
-        {phases.map(p => (
+        {phases.map((p) => (
           <button
             key={p.id}
             role="tab"
@@ -151,11 +167,16 @@ export const TimelineTab: React.FC<TimelineTabProps> = ({
         <div className="alert-banner alert-brand">
           <Sparkles className="alert-icon" size={20} />
           <div className="alert-content">
-            <strong>Day-of Coordination Mode:</strong> Hour-by-hour run of show for execution on {event.date}.
+            <strong>Day-of Coordination Mode:</strong> Hour-by-hour run of show for execution on{' '}
+            {event.date}.
           </div>
-          <button 
+          <button
             className="btn btn-secondary btn-sm"
-            onClick={() => onAskAI(`Generate a minute-by-minute contingency timeline for ${event.title} in case our caterer or photographer is delayed by 45 minutes.`)}
+            onClick={() =>
+              onAskAI(
+                `Generate a minute-by-minute contingency timeline for ${event.title} in case our caterer or photographer is delayed by 45 minutes.`
+              )
+            }
           >
             Generate Delay Buffer Plan
           </button>
@@ -172,12 +193,12 @@ export const TimelineTab: React.FC<TimelineTabProps> = ({
           </div>
         ) : (
           filteredItems.map((item, idx) => (
-            <div 
-              key={item.id} 
+            <div
+              key={item.id}
               className={`timeline-card glass-card ${item.completed ? 'item-completed' : ''} ${item.phase === 'day_of' ? 'day-of-highlight' : ''}`}
             >
               <div className="timeline-node-marker">
-                <button 
+                <button
                   className="checkbox-toggle-btn"
                   onClick={() => handleToggle(item.id)}
                   aria-label={`Toggle completion for ${item.title}`}
@@ -207,7 +228,7 @@ export const TimelineTab: React.FC<TimelineTabProps> = ({
                       {item.priority.toUpperCase()}
                     </span>
 
-                    <button 
+                    <button
                       className="btn btn-ghost btn-sm icon-only text-danger"
                       onClick={() => handleDelete(item.id)}
                       title="Delete milestone"
@@ -218,9 +239,7 @@ export const TimelineTab: React.FC<TimelineTabProps> = ({
                   </div>
                 </div>
 
-                {item.description && (
-                  <p className="timeline-desc-text">{item.description}</p>
-                )}
+                {item.description && <p className="timeline-desc-text">{item.description}</p>}
 
                 <div className="timeline-footer-row">
                   <span className="timeline-phase-tag">
@@ -235,12 +254,17 @@ export const TimelineTab: React.FC<TimelineTabProps> = ({
 
       {/* Add Milestone Modal */}
       {showAddModal && (
-        <div className="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="add-milestone-title">
+        <div
+          className="modal-backdrop"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="add-milestone-title"
+        >
           <div className="modal-content glass-panel" ref={addModalRef} tabIndex={-1}>
             <div className="modal-header">
               <h3 id="add-milestone-title">Schedule New Milestone</h3>
-              <button 
-                className="btn btn-ghost btn-sm icon-only" 
+              <button
+                className="btn btn-ghost btn-sm icon-only"
                 onClick={() => setShowAddModal(false)}
                 aria-label="Close dialog"
               >
@@ -251,9 +275,9 @@ export const TimelineTab: React.FC<TimelineTabProps> = ({
             <form onSubmit={handleAddMilestone} className="modal-form">
               <div className="form-group">
                 <label htmlFor="milestone-title">Milestone Title *</label>
-                <input 
+                <input
                   id="milestone-title"
-                  type="text" 
+                  type="text"
                   required
                   placeholder="e.g. Officiant Vows Rehearsal or Cake Delivery"
                   value={newTitle}
@@ -264,7 +288,7 @@ export const TimelineTab: React.FC<TimelineTabProps> = ({
               <div className="form-row-2">
                 <div className="form-group">
                   <label htmlFor="milestone-phase">Phase</label>
-                  <select 
+                  <select
                     id="milestone-phase"
                     value={newPhase}
                     onChange={(e) => setNewPhase(e.target.value as TimelinePhase)}
@@ -278,7 +302,7 @@ export const TimelineTab: React.FC<TimelineTabProps> = ({
 
                 <div className="form-group">
                   <label htmlFor="milestone-time">Target Time / Date Slot *</label>
-                  <input 
+                  <input
                     id="milestone-time"
                     type="text"
                     required
@@ -291,7 +315,7 @@ export const TimelineTab: React.FC<TimelineTabProps> = ({
 
               <div className="form-group">
                 <label htmlFor="milestone-priority">Priority</label>
-                <select 
+                <select
                   id="milestone-priority"
                   value={newPriority}
                   onChange={(e) => setNewPriority(e.target.value as 'high' | 'medium' | 'low')}
@@ -304,7 +328,7 @@ export const TimelineTab: React.FC<TimelineTabProps> = ({
 
               <div className="form-group">
                 <label htmlFor="milestone-desc">Description & Instructions</label>
-                <textarea 
+                <textarea
                   id="milestone-desc"
                   rows={3}
                   placeholder="Specific details, personnel responsible, or contact coordinates..."
@@ -314,9 +338,9 @@ export const TimelineTab: React.FC<TimelineTabProps> = ({
               </div>
 
               <div className="modal-actions">
-                <button 
-                  type="button" 
-                  className="btn btn-secondary" 
+                <button
+                  type="button"
+                  className="btn btn-secondary"
                   onClick={() => setShowAddModal(false)}
                 >
                   Cancel

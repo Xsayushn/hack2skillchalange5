@@ -120,7 +120,7 @@ export const exportService = {
    */
   parseDateOffsetInDays(text: string): number {
     const lower = text.toLowerCase();
-    
+
     // Months
     const monthMatch = lower.match(/(\d+)\s*month/);
     if (monthMatch) return parseInt(monthMatch[1], 10) * 30;
@@ -173,7 +173,10 @@ export const exportService = {
 
   generateMarkdownDossier(event: EventPlan): string {
     const totalEstimated = event.budgetItems.reduce((acc, b) => acc + b.estimatedCost, 0);
-    const totalActual = event.budgetItems.reduce((acc, b) => acc + (b.actualCost || b.estimatedCost), 0);
+    const totalActual = event.budgetItems.reduce(
+      (acc, b) => acc + (b.actualCost || b.estimatedCost),
+      0
+    );
     const totalPaid = event.budgetItems.reduce((acc, b) => acc + b.paidCost, 0);
     const budgetSafe = event.totalBudget || 1;
 
@@ -202,38 +205,42 @@ export const exportService = {
 ### Line Items
 | Category | Item Name | Estimated | Actual | Paid | Status | Notes |
 |---|---|---|---|---|---|---|
-${event.budgetItems.map(b => `| ${b.category} | ${b.name} | ${event.currencySymbol}${b.estimatedCost} | ${event.currencySymbol}${b.actualCost} | ${event.currencySymbol}${b.paidCost} | ${b.status} | ${b.notes || '-'} |`).join('\n')}
+${event.budgetItems.map((b) => `| ${b.category} | ${b.name} | ${event.currencySymbol}${b.estimatedCost} | ${event.currencySymbol}${b.actualCost} | ${event.currencySymbol}${b.paidCost} | ${b.status} | ${b.notes || '-'} |`).join('\n')}
 
 ---
 
 ## ⏱️ Timeline & Schedule of Events
-${event.timelineItems.map(t => `- **[${t.phase.toUpperCase()}]** *${t.targetDateOrTime}* - ${t.completed ? '✅' : '⏳'} **${t.title}**: ${t.description}`).join('\n')}
+${event.timelineItems.map((t) => `- **[${t.phase.toUpperCase()}]** *${t.targetDateOrTime}* - ${t.completed ? '✅' : '⏳'} **${t.title}**: ${t.description}`).join('\n')}
 
 ---
 
 ## 🤝 Vendor Directory
-${event.vendors.map(v => `### ${v.name} (${v.category})
+${event.vendors
+  .map(
+    (v) => `### ${v.name} (${v.category})
 - **Contact:** ${v.contactPerson} (${v.email} | ${v.phone})
 - **Status:** ${v.status.toUpperCase()} | Agreed: ${event.currencySymbol}${v.agreedCost}
 - **Notes:** ${v.notes}
-${v.keyQuestions && v.keyQuestions.length ? `**Key Verification Questions:**\n${v.keyQuestions.map(q => `  - [ ] ${q}`).join('\n')}` : ''}
-`).join('\n')}
+${v.keyQuestions && v.keyQuestions.length ? `**Key Verification Questions:**\n${v.keyQuestions.map((q) => `  - [ ] ${q}`).join('\n')}` : ''}
+`
+  )
+  .join('\n')}
 
 ---
 
 ## 🎨 Personalized Creative Concepts
 - **Theme:** ${event.personalizedIdeas.themeName}
 - **Concept:** ${event.personalizedIdeas.themeDescription}
-- **Color Palette:** ${event.personalizedIdeas.colorPalette.map(c => `${c.name} (${c.hex})`).join(', ')}
+- **Color Palette:** ${event.personalizedIdeas.colorPalette.map((c) => `${c.name} (${c.hex})`).join(', ')}
 
 ### Curated Activities
-${event.personalizedIdeas.activities.map(a => `- **${a.name}** (${a.duration}, for ${a.targetAudience}): ${a.description}`).join('\n')}
+${event.personalizedIdeas.activities.map((a) => `- **${a.name}** (${a.duration}, for ${a.targetAudience}): ${a.description}`).join('\n')}
 
 ### Speeches & Toasts
-${event.personalizedIdeas.customSpeeches.map(s => `#### ${s.title} (${s.role})\n> "${s.text}"\n`).join('\n')}
+${event.personalizedIdeas.customSpeeches.map((s) => `#### ${s.title} (${s.role})\n> "${s.text}"\n`).join('\n')}
 
 ### Cost Saving Insights
-${event.personalizedIdeas.costSavingTips.map(c => `- 💡 ${c}`).join('\n')}
+${event.personalizedIdeas.costSavingTips.map((c) => `- 💡 ${c}`).join('\n')}
 `;
   },
 

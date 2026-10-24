@@ -1,4 +1,13 @@
-import { EventPlan, EventType, BudgetItem, TimelineItem, Vendor, PersonalizedIdeas, AISettings } from '../types';
+import {
+  EventPlan,
+  BudgetItem,
+  TimelineItem,
+  Vendor,
+  PersonalizedIdeas,
+  AISettings,
+  GenerateEventParams,
+  PlanGenerationResult
+} from '../types';
 import {
   capitalize,
   generateBudgetBreakdown,
@@ -6,47 +15,29 @@ import {
   generateVendors,
   generateCreativeIdeas
 } from './heuristicGenerators';
-import {
-  calculateDaysRemaining,
-  autonomousAgentRespond
-} from './autonomousAssistant';
+import { calculateDaysRemaining, autonomousAgentRespond } from './autonomousAssistant';
 
-export interface GenerateEventParams {
-  title: string;
-  type: EventType;
-  date: string;
-  targetGuests: number;
-  location: string;
-  vibe: string;
-  totalBudget: number;
-  currency: string;
-  currencySymbol: string;
-  priorityFocus?: 'catering' | 'entertainment' | 'decor' | 'photo' | 'balanced';
-  dietaryOrSpecialNotes?: string;
-}
+export type { GenerateEventParams, PlanGenerationResult };
 
-export const DEFAULT_AI_MODEL = 'gemini-1.5-flash';
+export const DEFAULT_AI_MODEL = 'gemini-3.8-flash';
 
 export const ALLOWED_MODELS = [
-  'gemini-1.5-flash',
-  'gemini-2.0-flash',
-  'gemini-2.5-flash',
+  'gemini-3.8-flash',
+  'gemini-3.6-flash',
   'gemini-3.5-flash',
-  'gemini-1.5-pro',
-  'gemini-2.0-flash-exp'
+  'gemini-2.5-flash',
+  'gemini-2.0-flash',
+  'gemini-1.5-flash'
 ];
-
-export interface PlanGenerationResult {
-  plan: EventPlan;
-  source: 'live-gemini' | 'autonomous-heuristics';
-  errorNotice?: string;
-}
 
 export const aiPlannerEngine = {
   /**
    * Generates a complete tailored EventPlan with source metadata.
    */
-  async generateEventPlanWithMeta(params: GenerateEventParams, aiSettings?: AISettings): Promise<PlanGenerationResult> {
+  async generateEventPlanWithMeta(
+    params: GenerateEventParams,
+    aiSettings?: AISettings
+  ): Promise<PlanGenerationResult> {
     if (aiSettings?.apiKey && aiSettings.apiKey.trim().length > 5) {
       try {
         const livePlan = await this.callGeminiForPlan(params, aiSettings);
@@ -78,7 +69,10 @@ export const aiPlannerEngine = {
    * If an active Gemini API key is configured, it dynamically invokes the Gemini model to synthesize
    * bespoke event elements; otherwise, it seamlessly uses the Autonomous Context-Aware Heuristics engine.
    */
-  async generateEventPlanAsync(params: GenerateEventParams, aiSettings?: AISettings): Promise<EventPlan> {
+  async generateEventPlanAsync(
+    params: GenerateEventParams,
+    aiSettings?: AISettings
+  ): Promise<EventPlan> {
     const result = await this.generateEventPlanWithMeta(params, aiSettings);
     return result.plan;
   },
@@ -86,7 +80,10 @@ export const aiPlannerEngine = {
   /**
    * Calls Google Gemini to generate a truly dynamic, context-tailored event plan
    */
-  async callGeminiForPlan(params: GenerateEventParams, aiSettings: AISettings): Promise<EventPlan | null> {
+  async callGeminiForPlan(
+    params: GenerateEventParams,
+    aiSettings: AISettings
+  ): Promise<EventPlan | null> {
     const rawModel = aiSettings.model || DEFAULT_AI_MODEL;
     const model = ALLOWED_MODELS.includes(rawModel) ? rawModel : DEFAULT_AI_MODEL;
     const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
@@ -135,7 +132,10 @@ You must respond ONLY with a raw JSON object (no markdown quotes, no explanation
     const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
     if (!rawText) return null;
 
-    const cleaned = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
+    const cleaned = rawText
+      .replace(/```json/g, '')
+      .replace(/```/g, '')
+      .trim();
     const parsed = JSON.parse(cleaned);
 
     const basePlan = this.generateEventPlan(params);
@@ -144,13 +144,29 @@ You must respond ONLY with a raw JSON object (no markdown quotes, no explanation
       personalizedIdeas: {
         themeName: parsed.themeName || basePlan.personalizedIdeas.themeName,
         themeDescription: parsed.themeDescription || basePlan.personalizedIdeas.themeDescription,
-        colorPalette: Array.isArray(parsed.colorPalette) && parsed.colorPalette.length >= 3 ? parsed.colorPalette : basePlan.personalizedIdeas.colorPalette,
-        activities: Array.isArray(parsed.activities) && parsed.activities.length ? parsed.activities : basePlan.personalizedIdeas.activities,
-        cateringHighlights: Array.isArray(parsed.cateringHighlights) && parsed.cateringHighlights.length ? parsed.cateringHighlights : basePlan.personalizedIdeas.cateringHighlights,
+        colorPalette:
+          Array.isArray(parsed.colorPalette) && parsed.colorPalette.length >= 3
+            ? parsed.colorPalette
+            : basePlan.personalizedIdeas.colorPalette,
+        activities:
+          Array.isArray(parsed.activities) && parsed.activities.length
+            ? parsed.activities
+            : basePlan.personalizedIdeas.activities,
+        cateringHighlights:
+          Array.isArray(parsed.cateringHighlights) && parsed.cateringHighlights.length
+            ? parsed.cateringHighlights
+            : basePlan.personalizedIdeas.cateringHighlights,
         playlistVibe: parsed.playlistVibe || basePlan.personalizedIdeas.playlistVibe,
-        customSpeeches: Array.isArray(parsed.customSpeeches) && parsed.customSpeeches.length ? parsed.customSpeeches : basePlan.personalizedIdeas.customSpeeches,
-        decorSuggestions: Array.isArray(parsed.decorSuggestions) ? parsed.decorSuggestions : basePlan.personalizedIdeas.decorSuggestions,
-        costSavingTips: Array.isArray(parsed.costSavingTips) ? parsed.costSavingTips : basePlan.personalizedIdeas.costSavingTips
+        customSpeeches:
+          Array.isArray(parsed.customSpeeches) && parsed.customSpeeches.length
+            ? parsed.customSpeeches
+            : basePlan.personalizedIdeas.customSpeeches,
+        decorSuggestions: Array.isArray(parsed.decorSuggestions)
+          ? parsed.decorSuggestions
+          : basePlan.personalizedIdeas.decorSuggestions,
+        costSavingTips: Array.isArray(parsed.costSavingTips)
+          ? parsed.costSavingTips
+          : basePlan.personalizedIdeas.costSavingTips
       },
       notes: `Generated dynamically via Google Gemini (${model}). Tailored to "${params.vibe}".`
     };
@@ -232,7 +248,10 @@ You must respond ONLY with a raw JSON object (no markdown quotes, no explanation
       } catch (err) {
         console.warn('Gemini API call failed, evaluating fallback behavior', err);
         if (aiSettings.useOfflineFallback === false) {
-          throw new Error('Gemini API connection error. Offline fallback is disabled in settings.', { cause: err });
+          throw new Error(
+            'Gemini API connection error. Offline fallback is disabled in settings.',
+            { cause: err }
+          );
         }
       }
     }
@@ -250,7 +269,7 @@ You must respond ONLY with a raw JSON object (no markdown quotes, no explanation
   ): Promise<{ text: string; suggestions?: string[] } | null> {
     const rawModel = aiSettings.model || DEFAULT_AI_MODEL;
     const model = ALLOWED_MODELS.includes(rawModel) ? rawModel : DEFAULT_AI_MODEL;
-    
+
     // Security Fix: API key is passed securely via 'x-goog-api-key' header, never exposed in URL query parameters!
     const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
 
@@ -264,7 +283,7 @@ Current Event Context:
 - Target Guests: ${currentEvent.targetGuests}
 - Total Budget: ${currentEvent.currencySymbol}${currentEvent.totalBudget} ${currentEvent.currency}
 - Current Budget Items: ${currentEvent.budgetItems.length} items logged
-- Pending Timeline Tasks: ${currentEvent.timelineItems.filter(t => !t.completed).length} incomplete
+- Pending Timeline Tasks: ${currentEvent.timelineItems.filter((t) => !t.completed).length} incomplete
 - Vibe: ${currentEvent.vibe}
 
 Provide specific, practical, highly creative, and mathematically sound suggestions. Format your response cleanly in Markdown. Provide 2-3 short follow-up suggestion prompts at the end separated by a line starting with "SUGGESTIONS:".
@@ -274,9 +293,7 @@ Provide specific, practical, highly creative, and mathematically sound suggestio
       contents: [
         {
           role: 'user',
-          parts: [
-            { text: `${contextSummary}\n\nUser Question:\n${prompt}` }
-          ]
+          parts: [{ text: `${contextSummary}\n\nUser Question:\n${prompt}` }]
         }
       ],
       generationConfig: {
@@ -317,7 +334,10 @@ Provide specific, practical, highly creative, and mathematically sound suggestio
     return { text, suggestions };
   },
 
-  autonomousAgentRespond(prompt: string, currentEvent: EventPlan): { text: string; suggestions?: string[] } {
+  autonomousAgentRespond(
+    prompt: string,
+    currentEvent: EventPlan
+  ): { text: string; suggestions?: string[] } {
     return autonomousAgentRespond(prompt, currentEvent);
   },
 

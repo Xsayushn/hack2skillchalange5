@@ -1,0 +1,85 @@
+/* ==========================================================================
+   Responsive Breakpoints
+   ========================================================================== */
+@media (max-width: 1024px) {
+  .event-header-main {
+    grid-template-columns: 1fr;
+  }
+  .overview-grid,
+  .overview-bottom-grid {
+    grid-template-columns: 1fr;
+  }
+  .budget-visual-grid {
+    grid-template-columns: 1fr;
+  }
+  .budget-summary-grid,
+  .rsvp-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .ideas-two-col-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .navbar-center {
+    display: none;
+  }
+  .header-kpi-grid {
+    grid-template-columns: 1fr;
+  }
+  .archetype-grid {
+    grid-template-columns: 1fr;
+  }
+  .form-row-2,
+  .form-row-3 {
+    grid-template-columns: 1fr;
+  }
+  .financial-stats-box {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .donut-and-legend {
+    flex-direction: column;
+  }
+}
+
+.wizard-sub-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.wizard-engine-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg-glass-card);
+  border: 1px solid var(--border-subtle);
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.msg-list-block {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 4px 0;
+}
+
+.msg-list-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.msg-bullet,
+.msg-num {
+  font-weight: 700;
+  color: var(--brand-primary);
+  flex-shrink: 0;
+}

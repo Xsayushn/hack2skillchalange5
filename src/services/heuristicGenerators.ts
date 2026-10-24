@@ -1,5 +1,11 @@
-import { BudgetCategory, BudgetItem, TimelineItem, Vendor, PersonalizedIdeas } from '../types';
-import { GenerateEventParams } from './aiPlannerEngine';
+import {
+  BudgetCategory,
+  BudgetItem,
+  TimelineItem,
+  Vendor,
+  PersonalizedIdeas,
+  GenerateEventParams
+} from '../types';
 
 export function capitalize(str: string): string {
   return str.charAt(0).toUpperCase() + str.slice(1);
@@ -23,48 +29,183 @@ export function generateBudgetBreakdown(params: GenerateEventParams): BudgetItem
 
   if (params.type === 'wedding') {
     ratios = [
-      { category: 'Venue & Rentals', name: 'Main Ceremony & Reception Venue', percentage: 0.28, notes: 'Includes tables, baseline seating, and private suites' },
-      { category: 'Catering & Bar', name: 'Plated/Buffet Dinner & Beverage Package', percentage: focus === 'catering' ? 0.36 : 0.31, notes: `Scaled for ${params.targetGuests} guests with cocktail hour` },
-      { category: 'Photography & Video', name: 'Full-Day Visual Coverage & Drone Video', percentage: focus === 'photo' ? 0.16 : 0.12, notes: '8-10 hours coverage with high-resolution digital prints' },
-      { category: 'Floral & Decor', name: 'Arbor Installation, Centerpieces & Ambient Lighting', percentage: focus === 'decor' ? 0.15 : 0.10, notes: 'Custom floral arrangements reflecting theme palette' },
-      { category: 'Music & Entertainment', name: 'Ceremony Acoustic Duo & Evening Band/DJ', percentage: focus === 'entertainment' ? 0.13 : 0.08, notes: 'Microphones for speeches and full sound system' },
-      { category: 'Attire & Styling', name: 'Gown, Suits, Accessories & Bridal Glam', percentage: 0.05, notes: 'Fittings and day-of beauty coordinator' },
-      { category: 'Invitations & Marketing', name: 'Stationery Suite, Calligraphy & RSVP Site', percentage: 0.02, notes: 'Save-the-dates and day-of signage' },
-      { category: 'Favors & Gifts', name: 'Curated Guest Keepsakes & Bridal Party Gifts', percentage: 0.02, notes: 'Artisanal tokens and thank-you bundles' },
-      { category: 'Contingency & Misc', name: 'Emergency Rainy Day Buffer & Permits', percentage: 0.02, notes: 'Reserved for last-minute weather or transport changes' }
+      {
+        category: 'Venue & Rentals',
+        name: 'Main Ceremony & Reception Venue',
+        percentage: 0.28,
+        notes: 'Includes tables, baseline seating, and private suites'
+      },
+      {
+        category: 'Catering & Bar',
+        name: 'Plated/Buffet Dinner & Beverage Package',
+        percentage: focus === 'catering' ? 0.36 : 0.31,
+        notes: `Scaled for ${params.targetGuests} guests with cocktail hour`
+      },
+      {
+        category: 'Photography & Video',
+        name: 'Full-Day Visual Coverage & Drone Video',
+        percentage: focus === 'photo' ? 0.16 : 0.12,
+        notes: '8-10 hours coverage with high-resolution digital prints'
+      },
+      {
+        category: 'Floral & Decor',
+        name: 'Arbor Installation, Centerpieces & Ambient Lighting',
+        percentage: focus === 'decor' ? 0.15 : 0.1,
+        notes: 'Custom floral arrangements reflecting theme palette'
+      },
+      {
+        category: 'Music & Entertainment',
+        name: 'Ceremony Acoustic Duo & Evening Band/DJ',
+        percentage: focus === 'entertainment' ? 0.13 : 0.08,
+        notes: 'Microphones for speeches and full sound system'
+      },
+      {
+        category: 'Attire & Styling',
+        name: 'Gown, Suits, Accessories & Bridal Glam',
+        percentage: 0.05,
+        notes: 'Fittings and day-of beauty coordinator'
+      },
+      {
+        category: 'Invitations & Marketing',
+        name: 'Stationery Suite, Calligraphy & RSVP Site',
+        percentage: 0.02,
+        notes: 'Save-the-dates and day-of signage'
+      },
+      {
+        category: 'Favors & Gifts',
+        name: 'Curated Guest Keepsakes & Bridal Party Gifts',
+        percentage: 0.02,
+        notes: 'Artisanal tokens and thank-you bundles'
+      },
+      {
+        category: 'Contingency & Misc',
+        name: 'Emergency Rainy Day Buffer & Permits',
+        percentage: 0.02,
+        notes: 'Reserved for last-minute weather or transport changes'
+      }
     ];
   } else if (params.type === 'birthday') {
     ratios = [
-      { category: 'Venue & Rentals', name: 'Private Party Space & Activity Arena', percentage: 0.32, notes: 'Covers private hall rental with sound & setup' },
-      { category: 'Catering & Bar', name: 'Specialty Bites, Refreshments & Custom Cake', percentage: focus === 'catering' ? 0.32 : 0.26, notes: `Tiered theme cake and finger food for ${params.targetGuests} guests` },
-      { category: 'Music & Entertainment', name: 'Live Entertainer, DJ or Character Stunt Lead', percentage: focus === 'entertainment' ? 0.25 : 0.18, notes: 'Interactive games and energetic hosting' },
-      { category: 'Floral & Decor', name: 'Theme Backdrop, Balloon Installations & Props', percentage: focus === 'decor' ? 0.20 : 0.12, notes: 'High-impact photo station and table decor' },
-      { category: 'Photography & Video', name: 'Highlight Candid Photographer', percentage: focus === 'photo' ? 0.12 : 0.05, notes: '2 hours of candid cake cutting and games coverage' },
-      { category: 'Favors & Gifts', name: 'Custom Goodie Bags & Swag', percentage: 0.05, notes: 'Themed gift bags for every attendee' },
-      { category: 'Contingency & Misc', name: 'Miscellaneous Supplies & Spares', percentage: 0.02, notes: 'Extra games, prizes, and unexpected guests' }
+      {
+        category: 'Venue & Rentals',
+        name: 'Private Party Space & Activity Arena',
+        percentage: 0.32,
+        notes: 'Covers private hall rental with sound & setup'
+      },
+      {
+        category: 'Catering & Bar',
+        name: 'Specialty Bites, Refreshments & Custom Cake',
+        percentage: focus === 'catering' ? 0.32 : 0.26,
+        notes: `Tiered theme cake and finger food for ${params.targetGuests} guests`
+      },
+      {
+        category: 'Music & Entertainment',
+        name: 'Live Entertainer, DJ or Character Stunt Lead',
+        percentage: focus === 'entertainment' ? 0.25 : 0.18,
+        notes: 'Interactive games and energetic hosting'
+      },
+      {
+        category: 'Floral & Decor',
+        name: 'Theme Backdrop, Balloon Installations & Props',
+        percentage: focus === 'decor' ? 0.2 : 0.12,
+        notes: 'High-impact photo station and table decor'
+      },
+      {
+        category: 'Photography & Video',
+        name: 'Highlight Candid Photographer',
+        percentage: focus === 'photo' ? 0.12 : 0.05,
+        notes: '2 hours of candid cake cutting and games coverage'
+      },
+      {
+        category: 'Favors & Gifts',
+        name: 'Custom Goodie Bags & Swag',
+        percentage: 0.05,
+        notes: 'Themed gift bags for every attendee'
+      },
+      {
+        category: 'Contingency & Misc',
+        name: 'Miscellaneous Supplies & Spares',
+        percentage: 0.02,
+        notes: 'Extra games, prizes, and unexpected guests'
+      }
     ];
   } else if (params.type === 'community' || params.type === 'festival') {
     ratios = [
-      { category: 'Logistics & Permits', name: 'City Permits, Street Barriers & Sanitation', percentage: 0.25, notes: 'Official council permits, waste disposal and security' },
-      { category: 'Catering & Bar', name: 'Community Refreshments, BBQ / Food Trucks', percentage: focus === 'catering' ? 0.35 : 0.28, notes: 'Wholesome communal meal and water hydration stations' },
-      { category: 'Music & Entertainment', name: 'Public PA System, Stage & Local Musicians', percentage: focus === 'entertainment' ? 0.25 : 0.18, notes: 'Outdoor sound equipment and performance lineup' },
-      { category: 'Invitations & Marketing', name: 'Signage, Banners, Posters & Flyers', percentage: 0.10, notes: 'Printed banners, road signs, and digital neighborhood ads' },
-      { category: 'Contingency & Misc', name: 'First Aid Tent, Volunteer Gear & Emergency Fund', percentage: 0.12, notes: 'Safety vests, first aid supplies, rain ponchos' },
-      { category: 'Floral & Decor', name: 'Eco-Friendly Bunting, Seedling Tables & Plants', percentage: 0.07, notes: 'Reusable decor and native plant displays' }
+      {
+        category: 'Logistics & Permits',
+        name: 'City Permits, Street Barriers & Sanitation',
+        percentage: 0.25,
+        notes: 'Official council permits, waste disposal and security'
+      },
+      {
+        category: 'Catering & Bar',
+        name: 'Community Refreshments, BBQ / Food Trucks',
+        percentage: focus === 'catering' ? 0.35 : 0.28,
+        notes: 'Wholesome communal meal and water hydration stations'
+      },
+      {
+        category: 'Music & Entertainment',
+        name: 'Public PA System, Stage & Local Musicians',
+        percentage: focus === 'entertainment' ? 0.25 : 0.18,
+        notes: 'Outdoor sound equipment and performance lineup'
+      },
+      {
+        category: 'Invitations & Marketing',
+        name: 'Signage, Banners, Posters & Flyers',
+        percentage: 0.1,
+        notes: 'Printed banners, road signs, and digital neighborhood ads'
+      },
+      {
+        category: 'Contingency & Misc',
+        name: 'First Aid Tent, Volunteer Gear & Emergency Fund',
+        percentage: 0.12,
+        notes: 'Safety vests, first aid supplies, rain ponchos'
+      },
+      {
+        category: 'Floral & Decor',
+        name: 'Eco-Friendly Bunting, Seedling Tables & Plants',
+        percentage: 0.07,
+        notes: 'Reusable decor and native plant displays'
+      }
     ];
   } else {
     ratios = [
-      { category: 'Venue & Rentals', name: 'Banquet Hall or Private Loft', percentage: 0.30, notes: 'Seating, podium, and AV projectors' },
-      { category: 'Catering & Bar', name: 'Passed Canapés & Cocktail Service', percentage: 0.35, notes: `Catering service for ${params.targetGuests} attendees` },
-      { category: 'Music & Entertainment', name: 'Keynote Audio, DJ & Lighting', percentage: 0.15, notes: 'Professional sound tech and evening music' },
-      { category: 'Photography & Video', name: 'Event Coverage & Portrait Station', percentage: 0.10, notes: 'Step-and-repeat backdrop and photographer' },
-      { category: 'Contingency & Misc', name: 'Contingency & Incidentals', percentage: 0.10, notes: 'Buffer for unforeseen logistics' }
+      {
+        category: 'Venue & Rentals',
+        name: 'Banquet Hall or Private Loft',
+        percentage: 0.3,
+        notes: 'Seating, podium, and AV projectors'
+      },
+      {
+        category: 'Catering & Bar',
+        name: 'Passed Canapés & Cocktail Service',
+        percentage: 0.35,
+        notes: `Catering service for ${params.targetGuests} attendees`
+      },
+      {
+        category: 'Music & Entertainment',
+        name: 'Keynote Audio, DJ & Lighting',
+        percentage: 0.15,
+        notes: 'Professional sound tech and evening music'
+      },
+      {
+        category: 'Photography & Video',
+        name: 'Event Coverage & Portrait Station',
+        percentage: 0.1,
+        notes: 'Step-and-repeat backdrop and photographer'
+      },
+      {
+        category: 'Contingency & Misc',
+        name: 'Contingency & Incidentals',
+        percentage: 0.1,
+        notes: 'Buffer for unforeseen logistics'
+      }
     ];
   }
 
   // Normalize percentages to exactly 1.0
   const sum = ratios.reduce((acc, r) => acc + r.percentage, 0);
-  const normalized = ratios.map(r => ({
+  const normalized = ratios.map((r) => ({
     ...r,
     percentage: r.percentage / sum
   }));
@@ -97,8 +238,13 @@ export function generatePhasedTimeline(params: GenerateEventParams): TimelineIte
   items.push({
     id: 'tl-1',
     phase: 'foundation',
-    title: isWedding ? 'Book Main Venue & Confirm Date' : isCommunity ? 'File Municipal Event & Noise Permits' : 'Secure Venue / Party Location',
-    description: 'Review contract terms, pay initial deposit, and lock in the date on the master calendar.',
+    title: isWedding
+      ? 'Book Main Venue & Confirm Date'
+      : isCommunity
+        ? 'File Municipal Event & Noise Permits'
+        : 'Secure Venue / Party Location',
+    description:
+      'Review contract terms, pay initial deposit, and lock in the date on the master calendar.',
     targetDateOrTime: isWedding ? '6-9 Months Before' : '4-6 Weeks Before',
     completed: true,
     priority: 'high'
@@ -118,7 +264,11 @@ export function generatePhasedTimeline(params: GenerateEventParams): TimelineIte
   items.push({
     id: 'tl-3',
     phase: 'bookings',
-    title: isWedding ? 'Hire Lead Photographer, Florist & Caterer' : isCommunity ? 'Partner with Food Vendors & Community Volunteers' : 'Order Custom Cake & Entertainment',
+    title: isWedding
+      ? 'Hire Lead Photographer, Florist & Caterer'
+      : isCommunity
+        ? 'Partner with Food Vendors & Community Volunteers'
+        : 'Order Custom Cake & Entertainment',
     description: 'Send contract inquiries, verify insurance, and finalize service agreements.',
     targetDateOrTime: isWedding ? '3-4 Months Before' : '2 Weeks Before',
     completed: false,
@@ -140,7 +290,8 @@ export function generatePhasedTimeline(params: GenerateEventParams): TimelineIte
     id: 'tl-5',
     phase: 'final_prep',
     title: 'Finalize Seating, Headcount & Vendor Arrival Times',
-    description: 'Provide final numbers to catering team and share delivery schedule with venue manager.',
+    description:
+      'Provide final numbers to catering team and share delivery schedule with venue manager.',
     targetDateOrTime: '5 Days Before',
     completed: false,
     priority: 'high'
@@ -150,7 +301,8 @@ export function generatePhasedTimeline(params: GenerateEventParams): TimelineIte
     id: 'tl-6',
     phase: 'final_prep',
     title: 'Prepare Emergency Kit & Day-of Contact Binder',
-    description: 'Print run of show, vendor contact sheet, phone numbers, and pack tape, scissors, first aid.',
+    description:
+      'Print run of show, vendor contact sheet, phone numbers, and pack tape, scissors, first aid.',
     targetDateOrTime: '2 Days Before',
     completed: false,
     priority: 'medium'
@@ -161,7 +313,8 @@ export function generatePhasedTimeline(params: GenerateEventParams): TimelineIte
     id: 'tl-7',
     phase: 'day_of',
     title: 'Venue Access & Morning Setup Kickoff',
-    description: 'Unload decor, set tables, verify audio/mic connections, and coordinate floral arrivals.',
+    description:
+      'Unload decor, set tables, verify audio/mic connections, and coordinate floral arrivals.',
     targetDateOrTime: '09:00 AM',
     completed: false,
     priority: 'high'
@@ -190,7 +343,11 @@ export function generatePhasedTimeline(params: GenerateEventParams): TimelineIte
   items.push({
     id: 'tl-10',
     phase: 'day_of',
-    title: isWedding ? 'Grand Ceremony Procession & Vows' : isCommunity ? 'Opening Welcome & Community Kickoff' : 'Main Event & Action Activities',
+    title: isWedding
+      ? 'Grand Ceremony Procession & Vows'
+      : isCommunity
+        ? 'Opening Welcome & Community Kickoff'
+        : 'Main Event & Action Activities',
     description: 'Core ceremony or main planned entertainment commences.',
     targetDateOrTime: isWedding ? '04:00 PM' : '01:30 PM',
     completed: false,
@@ -211,7 +368,8 @@ export function generatePhasedTimeline(params: GenerateEventParams): TimelineIte
     id: 'tl-12',
     phase: 'day_of',
     title: 'Grand Finale & Tear Down / Departure',
-    description: 'Final dance or celebration send-off, pack personal items, and sign off with venue staff.',
+    description:
+      'Final dance or celebration send-off, pack personal items, and sign off with venue staff.',
     targetDateOrTime: isWedding ? '10:30 PM' : '05:00 PM',
     completed: false,
     priority: 'high'
@@ -321,14 +479,27 @@ export function generateCreativeIdeas(params: GenerateEventParams): Personalized
     colorPalette,
     activities: [
       {
-        name: isWedding ? 'Audio Guestbook Phone' : isBirthday ? 'Glow-in-the-Dark Quest' : 'Neighborhood Mural Live Art Station',
-        description: isWedding ? `Guests record heartfelt advice reflecting the "${userVibe}" celebration vibe.` : isBirthday ? `Teams collaborate to solve riddles in a fast-paced activity themed around "${userVibe}".` : `Attendees paint a collective banner celebrating neighborhood history in ${params.location}.`,
+        name: isWedding
+          ? 'Audio Guestbook Phone'
+          : isBirthday
+            ? 'Glow-in-the-Dark Quest'
+            : 'Neighborhood Mural Live Art Station',
+        description: isWedding
+          ? `Guests record heartfelt advice reflecting the "${userVibe}" celebration vibe.`
+          : isBirthday
+            ? `Teams collaborate to solve riddles in a fast-paced activity themed around "${userVibe}".`
+            : `Attendees paint a collective banner celebrating neighborhood history in ${params.location}.`,
         targetAudience: 'All Guests',
         duration: 'Ongoing'
       },
       {
-        name: isWedding ? 'Late-Night Fire Pit S’mores' : isBirthday ? 'Custom T-Shirt Printing Station' : 'Local Talent Acoustic Showcase',
-        description: 'A dedicated interactive highlight that keeps guest energy lively and engaged.',
+        name: isWedding
+          ? 'Late-Night Fire Pit S’mores'
+          : isBirthday
+            ? 'Custom T-Shirt Printing Station'
+            : 'Local Talent Acoustic Showcase',
+        description:
+          'A dedicated interactive highlight that keeps guest energy lively and engaged.',
         targetAudience: 'All Ages',
         duration: '45 Minutes'
       }

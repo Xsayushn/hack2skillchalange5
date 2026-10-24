@@ -1,58 +1,49 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  Navbar 
-} from './components/Navbar';
-import { 
-  EventHeader, 
-  TabType 
-} from './components/EventHeader';
-import { 
-  OverviewTab 
-} from './components/OverviewTab';
-import { 
-  BudgetTab 
-} from './components/BudgetTab';
-import { 
-  TimelineTab 
-} from './components/TimelineTab';
-import { 
-  VendorsTab 
-} from './components/VendorsTab';
-import { 
-  IdeasMoodboardTab 
-} from './components/IdeasMoodboardTab';
-import { 
-  GuestListTab 
-} from './components/GuestListTab';
-import { 
-  MasterDossierTab 
-} from './components/MasterDossierTab';
-import { 
-  EventWizardModal 
-} from './components/EventWizardModal';
-import { 
-  AssistantDrawer 
-} from './components/AssistantDrawer';
-import { 
-  SettingsModal 
-} from './components/SettingsModal';
-import { 
-  EventPlan, 
-  AISettings 
-} from './types';
-import { 
-  storageService 
-} from './services/storageService';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
+import { Navbar } from './components/Navbar';
+import { EventHeader, TabType } from './components/EventHeader';
+import { EventWizardModal } from './components/EventWizardModal';
+import { SettingsModal } from './components/SettingsModal';
+
+const OverviewTab = lazy(() =>
+  import('./components/OverviewTab').then((m) => ({ default: m.OverviewTab }))
+);
+const BudgetTab = lazy(() =>
+  import('./components/BudgetTab').then((m) => ({ default: m.BudgetTab }))
+);
+const TimelineTab = lazy(() =>
+  import('./components/TimelineTab').then((m) => ({ default: m.TimelineTab }))
+);
+const VendorsTab = lazy(() =>
+  import('./components/VendorsTab').then((m) => ({ default: m.VendorsTab }))
+);
+const IdeasMoodboardTab = lazy(() =>
+  import('./components/IdeasMoodboardTab').then((m) => ({ default: m.IdeasMoodboardTab }))
+);
+const GuestListTab = lazy(() =>
+  import('./components/GuestListTab').then((m) => ({ default: m.GuestListTab }))
+);
+const MasterDossierTab = lazy(() =>
+  import('./components/MasterDossierTab').then((m) => ({ default: m.MasterDossierTab }))
+);
+const AssistantDrawer = lazy(() =>
+  import('./components/AssistantDrawer').then((m) => ({ default: m.AssistantDrawer }))
+);
+import { EventPlan, AISettings } from './types';
+import { storageService } from './services/storageService';
 import { Bot } from 'lucide-react';
 
 export const App: React.FC = () => {
   // Core state
   const [events, setEvents] = useState<EventPlan[]>(() => storageService.loadEvents());
-  const [activeEventId, setActiveEventId] = useState<string>(() => storageService.getActiveEventId());
+  const [activeEventId, setActiveEventId] = useState<string>(() =>
+    storageService.getActiveEventId()
+  );
   const [activeTab, setActiveTab] = useState<TabType>('overview');
 
   // Theme & Preferences
-  const [theme, setTheme] = useState<'dark' | 'light' | 'contrast'>(() => storageService.loadTheme());
+  const [theme, setTheme] = useState<'dark' | 'light' | 'contrast'>(() =>
+    storageService.loadTheme()
+  );
   const [aiSettings, setAISettings] = useState<AISettings>(() => storageService.loadAISettings());
 
   // Modal dialog states
@@ -79,11 +70,11 @@ export const App: React.FC = () => {
   };
 
   // Find active event with safe fallback
-  const activeEvent = events.find(e => e.id === activeEventId) || events[0];
+  const activeEvent = events.find((e) => e.id === activeEventId) || events[0];
 
   // Update single active event
   const handleUpdateActiveEvent = (updated: EventPlan) => {
-    const updatedEvents = events.map(e => e.id === updated.id ? updated : e);
+    const updatedEvents = events.map((e) => (e.id === updated.id ? updated : e));
     handleUpdateEvents(updatedEvents);
   };
 
@@ -129,7 +120,7 @@ export const App: React.FC = () => {
       </a>
 
       {/* Top Navigation Bar */}
-      <Navbar 
+      <Navbar
         events={events}
         activeEvent={activeEvent}
         onSelectEvent={setActiveEventId}
@@ -143,81 +134,93 @@ export const App: React.FC = () => {
       {/* Main Workspace Container */}
       <main id="main-content" className="main-content-layout">
         {/* Header & Section Navigation */}
-        <EventHeader 
-          event={activeEvent}
-          activeTab={activeTab}
-          onTabChange={setActiveTab}
-        />
+        <EventHeader event={activeEvent} activeTab={activeTab} onTabChange={setActiveTab} />
 
         {/* Dynamic Tab Panes */}
-        <section className="tab-pane-container" role="tabpanel" id={`panel-${activeTab}`} aria-labelledby={`tab-${activeTab}`}>
-          {activeTab === 'overview' && (
-            <OverviewTab 
-              event={activeEvent}
-              onNavigateTab={setActiveTab}
-              onToggleTimelineItem={(itemId) => {
-                const updated = {
-                  ...activeEvent,
-                  timelineItems: activeEvent.timelineItems.map(t => t.id === itemId ? { ...t, completed: !t.completed } : t),
-                  updatedAt: new Date().toISOString()
-                };
-                handleUpdateActiveEvent(updated);
-              }}
-              onAskAI={handleAskAI}
-            />
-          )}
+        <section
+          className="tab-pane-container"
+          role="tabpanel"
+          id={`panel-${activeTab}`}
+          aria-labelledby={`tab-${activeTab}`}
+        >
+          <Suspense
+            fallback={
+              <div
+                className="tab-loading-state"
+                role="status"
+                aria-label="Loading view"
+                style={{ padding: '40px', textAlign: 'center', color: 'var(--text-secondary)' }}
+              >
+                Loading view...
+              </div>
+            }
+          >
+            {activeTab === 'overview' && (
+              <OverviewTab
+                event={activeEvent}
+                onNavigateTab={setActiveTab}
+                onToggleTimelineItem={(itemId) => {
+                  const updated = {
+                    ...activeEvent,
+                    timelineItems: activeEvent.timelineItems.map((t) =>
+                      t.id === itemId ? { ...t, completed: !t.completed } : t
+                    ),
+                    updatedAt: new Date().toISOString()
+                  };
+                  handleUpdateActiveEvent(updated);
+                }}
+                onAskAI={handleAskAI}
+              />
+            )}
 
-          {activeTab === 'budget' && (
-            <BudgetTab 
-              event={activeEvent}
-              onUpdateEvent={handleUpdateActiveEvent}
-              onAskAI={handleAskAI}
-            />
-          )}
+            {activeTab === 'budget' && (
+              <BudgetTab
+                event={activeEvent}
+                onUpdateEvent={handleUpdateActiveEvent}
+                onAskAI={handleAskAI}
+              />
+            )}
 
-          {activeTab === 'timeline' && (
-            <TimelineTab 
-              event={activeEvent}
-              onUpdateEvent={handleUpdateActiveEvent}
-              onAskAI={handleAskAI}
-            />
-          )}
+            {activeTab === 'timeline' && (
+              <TimelineTab
+                event={activeEvent}
+                onUpdateEvent={handleUpdateActiveEvent}
+                onAskAI={handleAskAI}
+              />
+            )}
 
-          {activeTab === 'vendors' && (
-            <VendorsTab 
-              event={activeEvent}
-              onUpdateEvent={handleUpdateActiveEvent}
-              onAskAI={handleAskAI}
-            />
-          )}
+            {activeTab === 'vendors' && (
+              <VendorsTab
+                event={activeEvent}
+                onUpdateEvent={handleUpdateActiveEvent}
+                onAskAI={handleAskAI}
+              />
+            )}
 
-          {activeTab === 'ideas' && (
-            <IdeasMoodboardTab 
-              event={activeEvent}
-              onUpdateEvent={handleUpdateActiveEvent}
-              onAskAI={handleAskAI}
-            />
-          )}
+            {activeTab === 'ideas' && (
+              <IdeasMoodboardTab
+                event={activeEvent}
+                onUpdateEvent={handleUpdateActiveEvent}
+                onAskAI={handleAskAI}
+              />
+            )}
 
-          {activeTab === 'guests' && (
-            <GuestListTab 
-              event={activeEvent}
-              onUpdateEvent={handleUpdateActiveEvent}
-              onAskAI={handleAskAI}
-            />
-          )}
+            {activeTab === 'guests' && (
+              <GuestListTab
+                event={activeEvent}
+                onUpdateEvent={handleUpdateActiveEvent}
+                onAskAI={handleAskAI}
+              />
+            )}
 
-          {activeTab === 'dossier' && (
-            <MasterDossierTab 
-              event={activeEvent}
-            />
-          )}
+            {activeTab === 'dossier' && <MasterDossierTab event={activeEvent} />}
+          </Suspense>
         </section>
       </main>
 
       {/* Floating AI Co-Pilot Launcher */}
       <aside className="floating-assistant-launcher no-print" aria-label="AI Co-Pilot Trigger">
-        <button 
+        <button
           className="assistant-fab-btn"
           onClick={() => setIsAssistantOpen(true)}
           aria-label="Open CelebrAIte AI Assistant"
@@ -230,29 +233,33 @@ export const App: React.FC = () => {
       </aside>
 
       {/* Modals & Drawers */}
-      <EventWizardModal 
+      <EventWizardModal
         isOpen={isWizardOpen}
         onClose={() => setIsWizardOpen(false)}
         onEventCreated={handleEventCreated}
         aiSettings={aiSettings}
       />
 
-      <AssistantDrawer 
-        isOpen={isAssistantOpen}
-        onClose={() => {
-          setIsAssistantOpen(false);
-          setInitialAssistantPrompt(null);
-        }}
-        event={activeEvent}
-        aiSettings={aiSettings}
-        onOpenSettings={() => {
-          setIsAssistantOpen(false);
-          setIsSettingsOpen(true);
-        }}
-        initialPrompt={initialAssistantPrompt}
-      />
+      {isAssistantOpen && (
+        <Suspense fallback={null}>
+          <AssistantDrawer
+            isOpen={isAssistantOpen}
+            onClose={() => {
+              setIsAssistantOpen(false);
+              setInitialAssistantPrompt(null);
+            }}
+            event={activeEvent}
+            aiSettings={aiSettings}
+            onOpenSettings={() => {
+              setIsAssistantOpen(false);
+              setIsSettingsOpen(true);
+            }}
+            initialPrompt={initialAssistantPrompt}
+          />
+        </Suspense>
+      )}
 
-      <SettingsModal 
+      <SettingsModal
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
         aiSettings={aiSettings}

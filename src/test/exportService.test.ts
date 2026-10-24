@@ -18,7 +18,7 @@ describe('exportService - Calendar & Document Generation', () => {
     expect(ics).toContain('SUMMARY:🎉');
 
     // Contains each timeline item
-    event.timelineItems.forEach(item => {
+    event.timelineItems.forEach((item) => {
       expect(ics).toContain(`[${item.phase.replace('_', ' ').toUpperCase()}]`);
     });
 
@@ -37,12 +37,12 @@ describe('exportService - Calendar & Document Generation', () => {
     expect(md).toContain(event.personalizedIdeas.themeName);
 
     // Includes vendors
-    event.vendors.forEach(v => {
+    event.vendors.forEach((v) => {
       expect(md).toContain(v.name);
     });
 
     // Includes color palette
-    event.personalizedIdeas.colorPalette.forEach(c => {
+    event.personalizedIdeas.colorPalette.forEach((c) => {
       expect(md).toContain(c.hex);
     });
   });
@@ -53,9 +53,13 @@ describe('exportService - Calendar & Document Generation', () => {
   });
 
   it('calculates non-zero-day duration for all-day milestones (DTEND = DTSTART + 1 day)', () => {
-    const milestoneItem = event.timelineItems.find(i => i.phase !== 'day_of') || event.timelineItems[0];
-    const timing = exportService.resolveTimelineTiming(milestoneItem, new Date('2026-10-24T00:00:00Z'));
-    
+    const milestoneItem =
+      event.timelineItems.find((i) => i.phase !== 'day_of') || event.timelineItems[0];
+    const timing = exportService.resolveTimelineTiming(
+      milestoneItem,
+      new Date('2026-10-24T00:00:00Z')
+    );
+
     expect(timing.dtstart).toContain('DTSTART;VALUE=DATE:');
     expect(timing.dtend).toContain('DTEND;VALUE=DATE:');
     // Ensure start and end date are not identical (RFC 5545 non-inclusive end date requirement)

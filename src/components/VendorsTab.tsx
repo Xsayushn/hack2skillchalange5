@@ -1,15 +1,8 @@
 import React, { useState } from 'react';
-import { 
-  Handshake, 
-  Plus, 
-  Phone, 
-  Mail, 
-  Trash2, 
-  Sparkles, 
-  ShieldCheck
-} from 'lucide-react';
+import { Handshake, Plus, Phone, Mail, Trash2, Sparkles, ShieldCheck } from 'lucide-react';
 import { EventPlan, Vendor, BudgetCategory, VendorStatus } from '../types';
 import { useModalA11y } from '../hooks/useModalA11y';
+import '../styles/vendors.css';
 
 interface VendorsTabProps {
   event: EventPlan;
@@ -30,14 +23,13 @@ const CATEGORIES: BudgetCategory[] = [
   'Contingency & Misc'
 ];
 
-export const VendorsTab: React.FC<VendorsTabProps> = ({
-  event,
-  onUpdateEvent,
-  onAskAI
-}) => {
+export const VendorsTab: React.FC<VendorsTabProps> = ({ event, onUpdateEvent, onAskAI }) => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [activeCategoryFilter, setActiveCategoryFilter] = useState('all');
-  const addModalRef = useModalA11y<HTMLDivElement>({ isOpen: showAddModal, onClose: () => setShowAddModal(false) });
+  const addModalRef = useModalA11y<HTMLDivElement>({
+    isOpen: showAddModal,
+    onClose: () => setShowAddModal(false)
+  });
 
   // Form State
   const [name, setName] = useState('');
@@ -89,7 +81,7 @@ export const VendorsTab: React.FC<VendorsTabProps> = ({
   const handleDeleteVendor = (id: string) => {
     onUpdateEvent({
       ...event,
-      vendors: event.vendors.filter(v => v.id !== id),
+      vendors: event.vendors.filter((v) => v.id !== id),
       updatedAt: new Date().toISOString()
     });
   };
@@ -97,23 +89,28 @@ export const VendorsTab: React.FC<VendorsTabProps> = ({
   const handleUpdateStatus = (id: string, newStatus: VendorStatus) => {
     onUpdateEvent({
       ...event,
-      vendors: event.vendors.map(v => v.id === id ? { ...v, status: newStatus } : v),
+      vendors: event.vendors.map((v) => (v.id === id ? { ...v, status: newStatus } : v)),
       updatedAt: new Date().toISOString()
     });
   };
 
-  const filteredVendors = event.vendors.filter(v => {
+  const filteredVendors = event.vendors.filter((v) => {
     if (activeCategoryFilter === 'all') return true;
     return v.category === activeCategoryFilter;
   });
 
   const getStatusBadge = (st: VendorStatus) => {
     switch (st) {
-      case 'booked': return <span className="vendor-status-pill status-booked">✅ Booked & Contracted</span>;
-      case 'quoted': return <span className="vendor-status-pill status-quoted">📄 Quote Received</span>;
-      case 'contacted': return <span className="vendor-status-pill status-contacted">💬 In Discussion</span>;
-      case 'completed': return <span className="vendor-status-pill status-completed">🏆 Service Completed</span>;
-      default: return <span className="vendor-status-pill status-researching">🔍 Researching</span>;
+      case 'booked':
+        return <span className="vendor-status-pill status-booked">✅ Booked & Contracted</span>;
+      case 'quoted':
+        return <span className="vendor-status-pill status-quoted">📄 Quote Received</span>;
+      case 'contacted':
+        return <span className="vendor-status-pill status-contacted">💬 In Discussion</span>;
+      case 'completed':
+        return <span className="vendor-status-pill status-completed">🏆 Service Completed</span>;
+      default:
+        return <span className="vendor-status-pill status-researching">🔍 Researching</span>;
     }
   };
 
@@ -131,10 +128,7 @@ export const VendorsTab: React.FC<VendorsTabProps> = ({
           </div>
         </div>
 
-        <button 
-          className="btn btn-primary btn-sm"
-          onClick={() => setShowAddModal(true)}
-        >
+        <button className="btn btn-primary btn-sm" onClick={() => setShowAddModal(true)}>
           <Plus size={15} />
           <span>Add New Vendor</span>
         </button>
@@ -142,14 +136,14 @@ export const VendorsTab: React.FC<VendorsTabProps> = ({
 
       {/* Category Filter Pills */}
       <div className="vendor-filter-bar">
-        <button 
+        <button
           className={`filter-chip ${activeCategoryFilter === 'all' ? 'active' : ''}`}
           onClick={() => setActiveCategoryFilter('all')}
         >
           All Vendors ({event.vendors.length})
         </button>
-        {CATEGORIES.map(c => {
-          const count = event.vendors.filter(v => v.category === c).length;
+        {CATEGORIES.map((c) => {
+          const count = event.vendors.filter((v) => v.category === c).length;
           if (count === 0) return null;
           return (
             <button
@@ -172,7 +166,7 @@ export const VendorsTab: React.FC<VendorsTabProps> = ({
             <p>Click "Add New Vendor" to log contact info and track contract quotes.</p>
           </div>
         ) : (
-          filteredVendors.map(vendor => (
+          filteredVendors.map((vendor) => (
             <div key={vendor.id} className="vendor-card glass-card">
               <div className="vendor-card-header">
                 <div>
@@ -182,8 +176,8 @@ export const VendorsTab: React.FC<VendorsTabProps> = ({
                 </div>
 
                 <div className="vendor-card-actions">
-                  <select 
-                    value={vendor.status} 
+                  <select
+                    value={vendor.status}
                     onChange={(e) => handleUpdateStatus(vendor.id, e.target.value as VendorStatus)}
                     className="vendor-status-select"
                     aria-label={`Update status for ${vendor.name}`}
@@ -195,7 +189,7 @@ export const VendorsTab: React.FC<VendorsTabProps> = ({
                     <option value="completed">Completed</option>
                   </select>
 
-                  <button 
+                  <button
                     className="btn btn-ghost btn-sm icon-only text-danger"
                     onClick={() => handleDeleteVendor(vendor.id)}
                     title={`Delete ${vendor.name}`}
@@ -212,10 +206,12 @@ export const VendorsTab: React.FC<VendorsTabProps> = ({
 
                 <div className="vendor-numbers-box">
                   <span className="price-item">
-                    <small>Quoted:</small> {event.currencySymbol}{vendor.quotedCost.toLocaleString()}
+                    <small>Quoted:</small> {event.currencySymbol}
+                    {vendor.quotedCost.toLocaleString()}
                   </span>
                   <span className="price-item text-brand">
-                    <small>Agreed:</small> {event.currencySymbol}{vendor.agreedCost.toLocaleString()}
+                    <small>Agreed:</small> {event.currencySymbol}
+                    {vendor.agreedCost.toLocaleString()}
                   </span>
                 </div>
               </div>
@@ -262,9 +258,13 @@ export const VendorsTab: React.FC<VendorsTabProps> = ({
 
               {/* AI Negotiator helper */}
               <div className="vendor-card-footer">
-                <button 
+                <button
                   className="btn btn-ghost btn-sm text-brand"
-                  onClick={() => onAskAI(`I am negotiating with ${vendor.name} (${vendor.category}) for ${event.title}. Their quoted cost is ${event.currencySymbol}${vendor.quotedCost}. What are 3 proven tips to negotiate this quote down or get complimentary upgrades?`)}
+                  onClick={() =>
+                    onAskAI(
+                      `I am negotiating with ${vendor.name} (${vendor.category}) for ${event.title}. Their quoted cost is ${event.currencySymbol}${vendor.quotedCost}. What are 3 proven tips to negotiate this quote down or get complimentary upgrades?`
+                    )
+                  }
                 >
                   <Sparkles size={14} />
                   <span>AI Negotiation Advice</span>
@@ -277,12 +277,17 @@ export const VendorsTab: React.FC<VendorsTabProps> = ({
 
       {/* Add Vendor Modal */}
       {showAddModal && (
-        <div className="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="add-vendor-title">
+        <div
+          className="modal-backdrop"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="add-vendor-title"
+        >
           <div className="modal-content glass-panel" ref={addModalRef} tabIndex={-1}>
             <div className="modal-header">
               <h3 id="add-vendor-title">Add Vendor or Service Partner</h3>
-              <button 
-                className="btn btn-ghost btn-sm icon-only" 
+              <button
+                className="btn btn-ghost btn-sm icon-only"
                 onClick={() => setShowAddModal(false)}
                 aria-label="Close dialog"
               >
@@ -293,9 +298,9 @@ export const VendorsTab: React.FC<VendorsTabProps> = ({
             <form onSubmit={handleAddVendor} className="modal-form">
               <div className="form-group">
                 <label htmlFor="vendor-name-input">Company / Vendor Name *</label>
-                <input 
+                <input
                   id="vendor-name-input"
-                  type="text" 
+                  type="text"
                   required
                   placeholder="e.g. Lumina Visuals or Cedar Grove Catering"
                   value={name}
@@ -306,18 +311,22 @@ export const VendorsTab: React.FC<VendorsTabProps> = ({
               <div className="form-row-2">
                 <div className="form-group">
                   <label htmlFor="vendor-cat-input">Category</label>
-                  <select 
+                  <select
                     id="vendor-cat-input"
                     value={category}
                     onChange={(e) => setCategory(e.target.value as BudgetCategory)}
                   >
-                    {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                    {CATEGORIES.map((c) => (
+                      <option key={c} value={c}>
+                        {c}
+                      </option>
+                    ))}
                   </select>
                 </div>
 
                 <div className="form-group">
                   <label htmlFor="vendor-status-input">Status</label>
-                  <select 
+                  <select
                     id="vendor-status-input"
                     value={status}
                     onChange={(e) => setStatus(e.target.value as VendorStatus)}
@@ -333,7 +342,7 @@ export const VendorsTab: React.FC<VendorsTabProps> = ({
               <div className="form-row-3">
                 <div className="form-group">
                   <label htmlFor="vendor-contact-person">Contact Person</label>
-                  <input 
+                  <input
                     id="vendor-contact-person"
                     type="text"
                     placeholder="e.g. Sarah Connor"
@@ -344,7 +353,7 @@ export const VendorsTab: React.FC<VendorsTabProps> = ({
 
                 <div className="form-group">
                   <label htmlFor="vendor-email">Email</label>
-                  <input 
+                  <input
                     id="vendor-email"
                     type="email"
                     placeholder="sarah@vendor.com"
@@ -355,7 +364,7 @@ export const VendorsTab: React.FC<VendorsTabProps> = ({
 
                 <div className="form-group">
                   <label htmlFor="vendor-phone">Phone</label>
-                  <input 
+                  <input
                     id="vendor-phone"
                     type="tel"
                     placeholder="(555) 012-3456"
@@ -368,7 +377,7 @@ export const VendorsTab: React.FC<VendorsTabProps> = ({
               <div className="form-row-2">
                 <div className="form-group">
                   <label htmlFor="vendor-quoted">Quoted Cost ({event.currencySymbol})</label>
-                  <input 
+                  <input
                     id="vendor-quoted"
                     type="number"
                     min="0"
@@ -379,7 +388,7 @@ export const VendorsTab: React.FC<VendorsTabProps> = ({
 
                 <div className="form-group">
                   <label htmlFor="vendor-agreed">Agreed Final Cost ({event.currencySymbol})</label>
-                  <input 
+                  <input
                     id="vendor-agreed"
                     type="number"
                     min="0"
@@ -391,7 +400,7 @@ export const VendorsTab: React.FC<VendorsTabProps> = ({
 
               <div className="form-group">
                 <label htmlFor="vendor-notes">Contract Notes & Inclusions</label>
-                <textarea 
+                <textarea
                   id="vendor-notes"
                   rows={2}
                   placeholder="Key package inclusions, payment terms, or setup arrival hours..."
@@ -401,9 +410,9 @@ export const VendorsTab: React.FC<VendorsTabProps> = ({
               </div>
 
               <div className="modal-actions">
-                <button 
-                  type="button" 
-                  className="btn btn-secondary" 
+                <button
+                  type="button"
+                  className="btn btn-secondary"
                   onClick={() => setShowAddModal(false)}
                 >
                   Cancel

@@ -1,16 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { 
-  Sparkles, 
-  Send, 
-  X, 
-  Bot, 
-  ShieldCheck, 
-  Copy, 
-  Check 
-} from 'lucide-react';
+import { Sparkles, Send, X, Bot, ShieldCheck, Copy, Check } from 'lucide-react';
 import { EventPlan, ChatMessage, AISettings } from '../types';
 import { aiPlannerEngine } from '../services/aiPlannerEngine';
 import { useModalA11y } from '../hooks/useModalA11y';
+import '../styles/assistantDrawer.css';
 
 interface AssistantDrawerProps {
   isOpen: boolean;
@@ -54,7 +47,7 @@ export const AssistantDrawer: React.FC<AssistantDrawerProps> = ({
   // Auto scroll to bottom
   useEffect(() => {
     if (isOpen) {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+      messagesEndRef.current?.scrollIntoView?.({ behavior: 'smooth' });
     }
   }, [messages, isOpen]);
 
@@ -69,7 +62,7 @@ export const AssistantDrawer: React.FC<AssistantDrawerProps> = ({
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     };
 
-    setMessages(prev => [...prev, userMsg]);
+    setMessages((prev) => [...prev, userMsg]);
     setInput('');
     setIsLoading(true);
 
@@ -84,7 +77,7 @@ export const AssistantDrawer: React.FC<AssistantDrawerProps> = ({
         suggestions: response.suggestions
       };
 
-      setMessages(prev => [...prev, botMsg]);
+      setMessages((prev) => [...prev, botMsg]);
     } catch (err: unknown) {
       const errMsg = err instanceof Error ? err.message : 'Connection glitch';
       const errorMsg: ChatMessage = {
@@ -94,7 +87,7 @@ export const AssistantDrawer: React.FC<AssistantDrawerProps> = ({
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         suggestions: ['How can I save budget?', 'Draft a run of show']
       };
-      setMessages(prev => [...prev, errorMsg]);
+      setMessages((prev) => [...prev, errorMsg]);
     } finally {
       setIsLoading(false);
     }
@@ -117,7 +110,11 @@ export const AssistantDrawer: React.FC<AssistantDrawerProps> = ({
     return paragraphs.map((block, pIdx) => {
       // Header 3/4
       if (block.startsWith('### ')) {
-        return <h4 key={pIdx} className="msg-h4">{block.replace('### ', '')}</h4>;
+        return (
+          <h4 key={pIdx} className="msg-h4">
+            {block.replace('### ', '')}
+          </h4>
+        );
       }
       if (block.startsWith('> ')) {
         return (
@@ -127,7 +124,12 @@ export const AssistantDrawer: React.FC<AssistantDrawerProps> = ({
         );
       }
       // List
-      if (block.includes('\n- ') || block.startsWith('- ') || block.includes('\n1. ') || /^\d+\.\s/.test(block)) {
+      if (
+        block.includes('\n- ') ||
+        block.startsWith('- ') ||
+        block.includes('\n1. ') ||
+        /^\d+\.\s/.test(block)
+      ) {
         const lines = block.split('\n');
         return (
           <div key={pIdx} className="msg-list-block">
@@ -162,7 +164,12 @@ export const AssistantDrawer: React.FC<AssistantDrawerProps> = ({
   const isUsingLiveGemini = !!(aiSettings.apiKey && aiSettings.apiKey.trim().length > 5);
 
   return (
-    <div className="assistant-drawer-overlay no-print" role="dialog" aria-modal="true" aria-label="CelebrAIte AI Co-Pilot">
+    <div
+      className="assistant-drawer-overlay no-print"
+      role="dialog"
+      aria-modal="true"
+      aria-label="CelebrAIte AI Co-Pilot"
+    >
       <aside className="assistant-drawer glass-panel" ref={drawerRef} tabIndex={-1}>
         {/* Drawer Header */}
         <header className="assistant-header">
@@ -173,14 +180,20 @@ export const AssistantDrawer: React.FC<AssistantDrawerProps> = ({
             <div>
               <h3>CelebrAIte Co-Pilot</h3>
               <div className="co-pilot-status-badge">
-                <span className={`status-indicator ${isUsingLiveGemini ? 'live-gemini' : 'autonomous-mode'}`} />
-                <span>{isUsingLiveGemini ? `Live Gemini (${aiSettings.model})` : 'Autonomous AI Engine (Offline Ready)'}</span>
+                <span
+                  className={`status-indicator ${isUsingLiveGemini ? 'live-gemini' : 'autonomous-mode'}`}
+                />
+                <span>
+                  {isUsingLiveGemini
+                    ? `Live Gemini (${aiSettings.model})`
+                    : 'Autonomous AI Engine (Offline Ready)'}
+                </span>
               </div>
             </div>
           </div>
 
           <div className="assistant-header-actions">
-            <button 
+            <button
               className="btn btn-ghost btn-sm icon-only"
               onClick={onOpenSettings}
               title="Configure API Key"
@@ -188,7 +201,7 @@ export const AssistantDrawer: React.FC<AssistantDrawerProps> = ({
             >
               <ShieldCheck size={17} />
             </button>
-            <button 
+            <button
               className="btn btn-ghost btn-sm icon-only"
               onClick={onClose}
               aria-label="Close Assistant Drawer"
@@ -201,12 +214,15 @@ export const AssistantDrawer: React.FC<AssistantDrawerProps> = ({
         {/* Synchronized Context Pill */}
         <div className="event-sync-banner">
           <Sparkles size={13} className="text-brand" />
-          <span>Synced with: <strong>{event.title}</strong> ({event.currencySymbol}{event.totalBudget.toLocaleString()} budget)</span>
+          <span>
+            Synced with: <strong>{event.title}</strong> ({event.currencySymbol}
+            {event.totalBudget.toLocaleString()} budget)
+          </span>
         </div>
 
         {/* Message Thread */}
         <div className="assistant-messages-stream" aria-live="polite">
-          {messages.map(msg => {
+          {messages.map((msg) => {
             const isBot = msg.sender === 'assistant';
             const isCopied = copiedId === msg.id;
 
@@ -214,26 +230,26 @@ export const AssistantDrawer: React.FC<AssistantDrawerProps> = ({
               <div key={msg.id} className={`chat-message-row ${isBot ? 'row-bot' : 'row-user'}`}>
                 <div className={`message-bubble ${isBot ? 'bubble-bot' : 'bubble-user'}`}>
                   <div className="message-header-row">
-                    <span className="sender-tag">
-                      {isBot ? 'CelebrAIte Assistant' : 'You'}
-                    </span>
+                    <span className="sender-tag">{isBot ? 'CelebrAIte Assistant' : 'You'}</span>
                     <span className="timestamp-tag">{msg.timestamp}</span>
 
                     {isBot && (
-                      <button 
+                      <button
                         className="btn btn-ghost btn-sm icon-only copy-msg-btn"
                         onClick={() => handleCopyMessage(msg.id, msg.text)}
                         title="Copy answer"
                         aria-label="Copy message text"
                       >
-                        {isCopied ? <Check size={13} className="text-emerald" /> : <Copy size={13} />}
+                        {isCopied ? (
+                          <Check size={13} className="text-emerald" />
+                        ) : (
+                          <Copy size={13} />
+                        )}
                       </button>
                     )}
                   </div>
 
-                  <div className="message-body-text">
-                    {renderFormattedMarkdown(msg.text)}
-                  </div>
+                  <div className="message-body-text">{renderFormattedMarkdown(msg.text)}</div>
 
                   {/* Suggestion Quick Chips */}
                   {msg.suggestions && msg.suggestions.length > 0 && (
@@ -259,7 +275,11 @@ export const AssistantDrawer: React.FC<AssistantDrawerProps> = ({
           })}
 
           {isLoading && (
-            <div className="chat-message-row row-bot">
+            <div
+              className="chat-message-row row-bot"
+              role="status"
+              aria-label="Synthesizing personalized event logic"
+            >
               <div className="message-bubble bubble-bot loading-bubble">
                 <div className="typing-dots">
                   <span />
@@ -276,11 +296,14 @@ export const AssistantDrawer: React.FC<AssistantDrawerProps> = ({
 
         {/* Input Bar */}
         <footer className="assistant-footer">
-          <form 
-            onSubmit={(e) => { e.preventDefault(); handleSendMessage(); }}
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleSendMessage();
+            }}
             className="assistant-input-form"
           >
-            <input 
+            <input
               type="text"
               placeholder="Ask anything about budgets, schedules, speeches, or venues..."
               value={input}
@@ -289,8 +312,8 @@ export const AssistantDrawer: React.FC<AssistantDrawerProps> = ({
               disabled={isLoading}
               aria-label="Ask CelebrAIte assistant"
             />
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               className="btn btn-primary send-btn"
               disabled={isLoading || !input.trim()}
               aria-label="Send query"

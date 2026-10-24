@@ -1,13 +1,8 @@
 import React, { useState } from 'react';
-import { 
-  Plus, 
-  Trash2, 
-  Sparkles, 
-  Utensils, 
-  Filter
-} from 'lucide-react';
+import { Plus, Trash2, Sparkles, Utensils, Filter } from 'lucide-react';
 import { EventPlan, Guest, RsvpStatus } from '../types';
 import { useModalA11y } from '../hooks/useModalA11y';
+import '../styles/guestList.css';
 
 interface GuestListTabProps {
   event: EventPlan;
@@ -15,14 +10,13 @@ interface GuestListTabProps {
   onAskAI: (prompt: string) => void;
 }
 
-export const GuestListTab: React.FC<GuestListTabProps> = ({
-  event,
-  onUpdateEvent,
-  onAskAI
-}) => {
+export const GuestListTab: React.FC<GuestListTabProps> = ({ event, onUpdateEvent, onAskAI }) => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [filterRsvp, setFilterRsvp] = useState<string>('all');
-  const addModalRef = useModalA11y<HTMLDivElement>({ isOpen: showAddModal, onClose: () => setShowAddModal(false) });
+  const addModalRef = useModalA11y<HTMLDivElement>({
+    isOpen: showAddModal,
+    onClose: () => setShowAddModal(false)
+  });
 
   // Form State
   const [name, setName] = useState('');
@@ -34,14 +28,24 @@ export const GuestListTab: React.FC<GuestListTabProps> = ({
 
   // Metrics
   const guests = event.guests;
-  const confirmedCount = guests.filter(g => g.rsvpStatus === 'confirmed').reduce((acc, g) => acc + 1 + g.plusOnes, 0);
-  const declinedCount = guests.filter(g => g.rsvpStatus === 'declined').length;
-  const pendingCount = guests.filter(g => g.rsvpStatus === 'pending').reduce((acc, g) => acc + 1 + g.plusOnes, 0);
+  const confirmedCount = guests
+    .filter((g) => g.rsvpStatus === 'confirmed')
+    .reduce((acc, g) => acc + 1 + g.plusOnes, 0);
+  const declinedCount = guests.filter((g) => g.rsvpStatus === 'declined').length;
+  const pendingCount = guests
+    .filter((g) => g.rsvpStatus === 'pending')
+    .reduce((acc, g) => acc + 1 + g.plusOnes, 0);
 
   // Dietary Restrictions Aggregation
   const dietaryItems = guests
-    .filter(g => g.dietaryNotes && g.dietaryNotes.trim() !== '' && g.dietaryNotes.toLowerCase() !== 'none' && g.rsvpStatus === 'confirmed')
-    .map(g => ({ guest: g.name, note: g.dietaryNotes }));
+    .filter(
+      (g) =>
+        g.dietaryNotes &&
+        g.dietaryNotes.trim() !== '' &&
+        g.dietaryNotes.toLowerCase() !== 'none' &&
+        g.rsvpStatus === 'confirmed'
+    )
+    .map((g) => ({ guest: g.name, note: g.dietaryNotes }));
 
   const handleAddGuest = (e: React.FormEvent) => {
     e.preventDefault();
@@ -72,7 +76,7 @@ export const GuestListTab: React.FC<GuestListTabProps> = ({
   const handleDeleteGuest = (id: string) => {
     onUpdateEvent({
       ...event,
-      guests: event.guests.filter(g => g.id !== id),
+      guests: event.guests.filter((g) => g.id !== id),
       updatedAt: new Date().toISOString()
     });
   };
@@ -80,12 +84,12 @@ export const GuestListTab: React.FC<GuestListTabProps> = ({
   const handleUpdateStatus = (id: string, status: RsvpStatus) => {
     onUpdateEvent({
       ...event,
-      guests: event.guests.map(g => g.id === id ? { ...g, rsvpStatus: status } : g),
+      guests: event.guests.map((g) => (g.id === id ? { ...g, rsvpStatus: status } : g)),
       updatedAt: new Date().toISOString()
     });
   };
 
-  const filteredGuests = guests.filter(g => {
+  const filteredGuests = guests.filter((g) => {
     if (filterRsvp === 'all') return true;
     return g.rsvpStatus === filterRsvp;
   });
@@ -96,35 +100,28 @@ export const GuestListTab: React.FC<GuestListTabProps> = ({
       <div className="rsvp-stats-grid">
         <div className="glass-card stat-card">
           <span className="stat-card-title">Confirmed Attendees</span>
-          <div className="stat-value text-emerald">
-            {confirmedCount}
-          </div>
+          <div className="stat-value text-emerald">{confirmedCount}</div>
           <span className="stat-card-hint">
-            {Math.round((confirmedCount / (event.targetGuests || 1)) * 100)}% of target ({event.targetGuests})
+            {Math.round((confirmedCount / (event.targetGuests || 1)) * 100)}% of target (
+            {event.targetGuests})
           </span>
         </div>
 
         <div className="glass-card stat-card">
           <span className="stat-card-title">Pending Responses</span>
-          <div className="stat-value text-brand">
-            {pendingCount}
-          </div>
+          <div className="stat-value text-brand">{pendingCount}</div>
           <span className="stat-card-hint">Awaiting confirmation</span>
         </div>
 
         <div className="glass-card stat-card">
           <span className="stat-card-title">Declined Invites</span>
-          <div className="stat-value text-muted">
-            {declinedCount}
-          </div>
+          <div className="stat-value text-muted">{declinedCount}</div>
           <span className="stat-card-hint">Cannot attend</span>
         </div>
 
         <div className="glass-card stat-card">
           <span className="stat-card-title">Dietary Accommodations</span>
-          <div className="stat-value text-brand">
-            {dietaryItems.length}
-          </div>
+          <div className="stat-value text-brand">{dietaryItems.length}</div>
           <span className="stat-card-hint">Special kitchen plates</span>
         </div>
       </div>
@@ -134,12 +131,16 @@ export const GuestListTab: React.FC<GuestListTabProps> = ({
         <div className="alert-banner alert-brand">
           <Utensils className="alert-icon" size={20} />
           <div className="alert-content">
-            <strong>Dietary Inclusivity Alert:</strong> You have {dietaryItems.length} guests with special dietary needs:{' '}
-            {dietaryItems.map(d => `${d.guest} (${d.note})`).join('; ')}.
+            <strong>Dietary Inclusivity Alert:</strong> You have {dietaryItems.length} guests with
+            special dietary needs: {dietaryItems.map((d) => `${d.guest} (${d.note})`).join('; ')}.
           </div>
-          <button 
+          <button
             className="btn btn-secondary btn-sm"
-            onClick={() => onAskAI(`How should our catering team organize plating for ${dietaryItems.length} guests with special dietary requests (${dietaryItems.map(d => d.note).join(', ')}) without delays?`)}
+            onClick={() =>
+              onAskAI(
+                `How should our catering team organize plating for ${dietaryItems.length} guests with special dietary requests (${dietaryItems.map((d) => d.note).join(', ')}) without delays?`
+              )
+            }
           >
             Catering Plating Advice
           </button>
@@ -150,7 +151,7 @@ export const GuestListTab: React.FC<GuestListTabProps> = ({
       <div className="guests-controls-bar">
         <div className="filter-group">
           <Filter size={15} className="text-muted" />
-          <select 
+          <select
             value={filterRsvp}
             onChange={(e) => setFilterRsvp(e.target.value)}
             className="select-input"
@@ -164,18 +165,19 @@ export const GuestListTab: React.FC<GuestListTabProps> = ({
         </div>
 
         <div className="guests-btn-actions">
-          <button 
+          <button
             className="btn btn-secondary btn-sm"
-            onClick={() => onAskAI(`Write a polite, warm RSVP follow-up text and email template for guests who have not responded to ${event.title}.`)}
+            onClick={() =>
+              onAskAI(
+                `Write a polite, warm RSVP follow-up text and email template for guests who have not responded to ${event.title}.`
+              )
+            }
           >
             <Sparkles size={14} />
             <span>AI RSVP Reminder Draft</span>
           </button>
 
-          <button 
-            className="btn btn-primary btn-sm"
-            onClick={() => setShowAddModal(true)}
-          >
+          <button className="btn btn-primary btn-sm" onClick={() => setShowAddModal(true)}>
             <Plus size={15} />
             <span>Add Guest</span>
           </button>
@@ -194,7 +196,9 @@ export const GuestListTab: React.FC<GuestListTabProps> = ({
                 <th scope="col">Plus Ones</th>
                 <th scope="col">Table / Zone</th>
                 <th scope="col">Dietary Needs</th>
-                <th scope="col" className="text-right">Actions</th>
+                <th scope="col" className="text-right">
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -205,7 +209,7 @@ export const GuestListTab: React.FC<GuestListTabProps> = ({
                   </td>
                 </tr>
               ) : (
-                filteredGuests.map(guest => (
+                filteredGuests.map((guest) => (
                   <tr key={guest.id}>
                     <td>
                       <strong>{guest.name}</strong>
@@ -214,8 +218,8 @@ export const GuestListTab: React.FC<GuestListTabProps> = ({
                       <span className="guest-group-badge">{guest.group}</span>
                     </td>
                     <td>
-                      <select 
-                        value={guest.rsvpStatus} 
+                      <select
+                        value={guest.rsvpStatus}
                         onChange={(e) => handleUpdateStatus(guest.id, e.target.value as RsvpStatus)}
                         className={`status-select status-${guest.rsvpStatus}`}
                         aria-label={`RSVP status for ${guest.name}`}
@@ -232,12 +236,18 @@ export const GuestListTab: React.FC<GuestListTabProps> = ({
                       <span className="table-zone-tag">{guest.tableOrZone || 'Unassigned'}</span>
                     </td>
                     <td>
-                      <span className={guest.dietaryNotes && guest.dietaryNotes.toLowerCase() !== 'none' ? 'text-brand font-semibold' : 'text-muted'}>
+                      <span
+                        className={
+                          guest.dietaryNotes && guest.dietaryNotes.toLowerCase() !== 'none'
+                            ? 'text-brand font-semibold'
+                            : 'text-muted'
+                        }
+                      >
                         {guest.dietaryNotes || 'None'}
                       </span>
                     </td>
                     <td className="text-right">
-                      <button 
+                      <button
                         className="btn btn-ghost btn-sm icon-only text-danger"
                         onClick={() => handleDeleteGuest(guest.id)}
                         title={`Delete ${guest.name}`}
@@ -256,12 +266,17 @@ export const GuestListTab: React.FC<GuestListTabProps> = ({
 
       {/* Add Guest Modal */}
       {showAddModal && (
-        <div className="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="add-guest-title">
+        <div
+          className="modal-backdrop"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="add-guest-title"
+        >
           <div className="modal-content glass-panel" ref={addModalRef} tabIndex={-1}>
             <div className="modal-header">
               <h3 id="add-guest-title">Add Guest to Invitation List</h3>
-              <button 
-                className="btn btn-ghost btn-sm icon-only" 
+              <button
+                className="btn btn-ghost btn-sm icon-only"
                 onClick={() => setShowAddModal(false)}
                 aria-label="Close dialog"
               >
@@ -272,9 +287,9 @@ export const GuestListTab: React.FC<GuestListTabProps> = ({
             <form onSubmit={handleAddGuest} className="modal-form">
               <div className="form-group">
                 <label htmlFor="guest-name">Guest Full Name *</label>
-                <input 
+                <input
                   id="guest-name"
-                  type="text" 
+                  type="text"
                   required
                   placeholder="e.g. Maya Lin"
                   value={name}
@@ -285,7 +300,7 @@ export const GuestListTab: React.FC<GuestListTabProps> = ({
               <div className="form-row-2">
                 <div className="form-group">
                   <label htmlFor="guest-group">Group / Circle</label>
-                  <input 
+                  <input
                     id="guest-group"
                     type="text"
                     placeholder="e.g. College Friends, Family, Neighbors"
@@ -296,7 +311,7 @@ export const GuestListTab: React.FC<GuestListTabProps> = ({
 
                 <div className="form-group">
                   <label htmlFor="guest-rsvp">RSVP Status</label>
-                  <select 
+                  <select
                     id="guest-rsvp"
                     value={rsvpStatus}
                     onChange={(e) => setRsvpStatus(e.target.value as RsvpStatus)}
@@ -311,7 +326,7 @@ export const GuestListTab: React.FC<GuestListTabProps> = ({
               <div className="form-row-2">
                 <div className="form-group">
                   <label htmlFor="guest-plus-ones">Plus Ones Allowed</label>
-                  <input 
+                  <input
                     id="guest-plus-ones"
                     type="number"
                     min="0"
@@ -323,7 +338,7 @@ export const GuestListTab: React.FC<GuestListTabProps> = ({
 
                 <div className="form-group">
                   <label htmlFor="guest-table">Table / Assigned Zone</label>
-                  <input 
+                  <input
                     id="guest-table"
                     type="text"
                     placeholder="e.g. Table 4 - Redwood"
@@ -335,7 +350,7 @@ export const GuestListTab: React.FC<GuestListTabProps> = ({
 
               <div className="form-group">
                 <label htmlFor="guest-dietary">Dietary Restrictions & Allergies</label>
-                <input 
+                <input
                   id="guest-dietary"
                   type="text"
                   placeholder="e.g. Vegan, Gluten-Free, Severe Nut Allergy"
@@ -345,9 +360,9 @@ export const GuestListTab: React.FC<GuestListTabProps> = ({
               </div>
 
               <div className="modal-actions">
-                <button 
-                  type="button" 
-                  className="btn btn-secondary" 
+                <button
+                  type="button"
+                  className="btn btn-secondary"
                   onClick={() => setShowAddModal(false)}
                 >
                   Cancel

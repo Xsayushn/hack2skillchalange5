@@ -77,7 +77,10 @@ export function useModalA11y<T extends HTMLElement = HTMLDivElement>({
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
       // Restore focus to previous element when modal unmounts/closes
-      if (previousActiveElement.current && typeof previousActiveElement.current.focus === 'function') {
+      if (
+        previousActiveElement.current &&
+        typeof previousActiveElement.current.focus === 'function'
+      ) {
         previousActiveElement.current.focus();
       }
     };

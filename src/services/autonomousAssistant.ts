@@ -21,12 +21,21 @@ export function autonomousAgentRespond(
   const q = prompt.toLowerCase();
   const currency = currentEvent.currencySymbol;
   const totalBudgetSafe = currentEvent.totalBudget || 1;
-  const spent = currentEvent.budgetItems.reduce((acc, b) => acc + (b.actualCost || b.estimatedCost), 0);
+  const spent = currentEvent.budgetItems.reduce(
+    (acc, b) => acc + (b.actualCost || b.estimatedCost),
+    0
+  );
   const balance = currentEvent.totalBudget - spent;
   const daysLeft = calculateDaysRemaining(currentEvent.date);
 
   // 1. Budget & Cost Trimming
-  if (q.includes('budget') || q.includes('save') || q.includes('cost') || q.includes('cheap') || q.includes('expensive')) {
+  if (
+    q.includes('budget') ||
+    q.includes('save') ||
+    q.includes('cost') ||
+    q.includes('cheap') ||
+    q.includes('expensive')
+  ) {
     return {
       text: `### 💡 Budget Optimization Report for ${currentEvent.title}
 **Financial Snapshot:**
@@ -48,7 +57,13 @@ export function autonomousAgentRespond(
   }
 
   // 2. Timeline & Schedule
-  if (q.includes('timeline') || q.includes('schedule') || q.includes('time') || q.includes('run of show') || q.includes('day-of')) {
+  if (
+    q.includes('timeline') ||
+    q.includes('schedule') ||
+    q.includes('time') ||
+    q.includes('run of show') ||
+    q.includes('day-of')
+  ) {
     return {
       text: `### ⏱️ Day-of Run of Show Blueprint: ${currentEvent.title}
 *Target Date: ${currentEvent.date} (${daysLeft > 0 ? `${daysLeft} days from now` : 'Today'}!)*
@@ -96,7 +111,13 @@ export function autonomousAgentRespond(
   }
 
   // 4. Vendors & Negotiations
-  if (q.includes('vendor') || q.includes('caterer') || q.includes('contract') || q.includes('photographer') || q.includes('questions')) {
+  if (
+    q.includes('vendor') ||
+    q.includes('caterer') ||
+    q.includes('contract') ||
+    q.includes('photographer') ||
+    q.includes('questions')
+  ) {
     return {
       text: `### 🤝 Vendor Master Checklist & Negotiation Playbook
 You currently have **${currentEvent.vendors.length} vendors** in your directory.
@@ -116,7 +137,14 @@ You currently have **${currentEvent.vendors.length} vendors** in your directory.
   }
 
   // 5. Dietary, Catering & Drinks
-  if (q.includes('food') || q.includes('menu') || q.includes('diet') || q.includes('vegan') || q.includes('cocktail') || q.includes('catering')) {
+  if (
+    q.includes('food') ||
+    q.includes('menu') ||
+    q.includes('diet') ||
+    q.includes('vegan') ||
+    q.includes('cocktail') ||
+    q.includes('catering')
+  ) {
     return {
       text: `### 🍽️ Inclusive Menu & Dietary Engineering
 Planning for **${currentEvent.targetGuests} attendees** with seamless hospitality:
@@ -143,7 +171,7 @@ I am actively synced with **"${currentEvent.title}"** (*${currentEvent.type} on 
 **Current Event Health:**
 - **Guest List:** ${currentEvent.targetGuests} anticipated guests.
 - **Budget Status:** ${currency}${spent.toLocaleString()} allocated out of ${currency}${currentEvent.totalBudget.toLocaleString()} (${currency}${balance.toLocaleString()} remaining).
-- **Milestones:** ${currentEvent.timelineItems.filter(t => t.completed).length} completed of ${currentEvent.timelineItems.length} total tasks.
+- **Milestones:** ${currentEvent.timelineItems.filter((t) => t.completed).length} completed of ${currentEvent.timelineItems.length} total tasks.
 - **Theme Concept:** *${currentEvent.personalizedIdeas.themeName}* (${currentEvent.vibe}).
 
 How would you like to level up your plan right now? I can optimize budgets, draft emergency contingency plans, write speeches, or tailor activities!`,

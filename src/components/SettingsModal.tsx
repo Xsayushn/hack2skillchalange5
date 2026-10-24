@@ -1,21 +1,22 @@
 import React, { useState } from 'react';
-import { 
-  Settings, 
-  Key, 
-  ShieldCheck, 
-  Check, 
-  AlertCircle, 
-  Download, 
-  Upload, 
-  RotateCcw, 
-  Eye, 
-  EyeOff, 
+import {
+  Settings,
+  Key,
+  ShieldCheck,
+  Check,
+  AlertCircle,
+  Download,
+  Upload,
+  RotateCcw,
+  Eye,
+  EyeOff,
   X
 } from 'lucide-react';
 import { AISettings, EventPlan } from '../types';
 import { storageService } from '../services/storageService';
 import { useModalA11y } from '../hooks/useModalA11y';
 import { ALLOWED_MODELS, DEFAULT_AI_MODEL } from '../services/aiPlannerEngine';
+import '../styles/modals.css';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -36,7 +37,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 }) => {
   const [apiKey, setApiKey] = useState(aiSettings.apiKey || '');
   const [model, setModel] = useState(aiSettings.model || DEFAULT_AI_MODEL);
-  const [useOfflineFallback, setUseOfflineFallback] = useState(aiSettings.useOfflineFallback !== false);
+  const [useOfflineFallback, setUseOfflineFallback] = useState(
+    aiSettings.useOfflineFallback !== false
+  );
   const [showKey, setShowKey] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [testStatus, setTestStatus] = useState<'idle' | 'testing' | 'success' | 'failed'>('idle');
@@ -69,7 +72,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
       const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${sanitizedModel}:generateContent`;
       const res = await fetch(endpoint, {
         method: 'POST',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
           'x-goog-api-key': apiKey.trim()
         },
@@ -122,15 +125,20 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   };
 
   return (
-    <div className="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="settings-title">
+    <div
+      className="modal-backdrop"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="settings-title"
+    >
       <div className="settings-modal-content glass-panel" ref={modalRef} tabIndex={-1}>
         <div className="modal-header">
           <div className="modal-title-with-icon">
             <Settings size={22} className="text-brand" />
             <h3 id="settings-title">Application & AI Configuration</h3>
           </div>
-          <button 
-            className="btn btn-ghost btn-sm icon-only" 
+          <button
+            className="btn btn-ghost btn-sm icon-only"
             onClick={onClose}
             aria-label="Close settings dialog"
           >
@@ -146,14 +154,17 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               <h4>Google Gemini Live AI Integration (Optional)</h4>
             </div>
             <p className="settings-desc">
-              CelebrAIte works 100% offline with a built-in <strong>Autonomous Intelligence Planning Engine</strong> out-of-the-box. You may optionally connect your personal Google Gemini API key to activate live generative models.
+              CelebrAIte works 100% offline with a built-in{' '}
+              <strong>Autonomous Intelligence Planning Engine</strong> out-of-the-box. You may
+              optionally connect your personal Google Gemini API key to activate live generative
+              models.
             </p>
 
             <form onSubmit={handleSave} className="api-key-form">
               <div className="form-group">
                 <label htmlFor="gemini-key-input">Gemini API Key</label>
                 <div className="password-input-wrapper">
-                  <input 
+                  <input
                     id="gemini-key-input"
                     type={showKey ? 'text' : 'password'}
                     placeholder="AIzaSy..."
@@ -161,8 +172,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                     onChange={(e) => setApiKey(e.target.value)}
                     className="key-input"
                   />
-                  <button 
-                    type="button" 
+                  <button
+                    type="button"
                     className="show-hide-btn"
                     onClick={() => setShowKey(!showKey)}
                     aria-label={showKey ? 'Hide API key' : 'Show API key'}
@@ -171,50 +182,70 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   </button>
                 </div>
                 <small className="field-hint">
-                  🔒 Security: Stored strictly in <code>sessionStorage</code> for this browser session and sent via secure <code>x-goog-api-key</code> headers (never in URL parameters).
+                  🔒 Security: Stored strictly in <code>sessionStorage</code> for this browser
+                  session and sent via secure <code>x-goog-api-key</code> headers (never in URL
+                  parameters).
                 </small>
               </div>
 
               <div className="form-group">
                 <label htmlFor="model-select">Gemini Model</label>
-                <select 
-                  id="model-select"
-                  value={model} 
-                  onChange={(e) => setModel(e.target.value)}
-                >
-                  <option value="gemini-1.5-flash">gemini-1.5-flash (Default · Fast & Multimodal)</option>
-                  <option value="gemini-2.0-flash">gemini-2.0-flash (Next-Gen High Speed)</option>
+                <select id="model-select" value={model} onChange={(e) => setModel(e.target.value)}>
+                  <option value="gemini-3.8-flash">
+                    gemini-3.8-flash (Default · Ultra Fast & Intelligent)
+                  </option>
+                  <option value="gemini-3.6-flash">
+                    gemini-3.6-flash (High Throughput & Speed)
+                  </option>
+                  <option value="gemini-3.5-flash">
+                    gemini-3.5-flash (Balanced Multimodal Intelligence)
+                  </option>
                   <option value="gemini-2.5-flash">gemini-2.5-flash (Advanced Low Latency)</option>
-                  <option value="gemini-3.5-flash">gemini-3.5-flash (High Intelligence)</option>
-                  <option value="gemini-1.5-pro">gemini-1.5-pro (In-depth Complex Reasoning)</option>
-                  <option value="gemini-2.0-flash-exp">gemini-2.0-flash-exp (Experimental)</option>
+                  <option value="gemini-2.0-flash">gemini-2.0-flash (Next-Gen High Speed)</option>
+                  <option value="gemini-1.5-flash">gemini-1.5-flash (Legacy Fallback)</option>
                 </select>
               </div>
 
-              <div className="form-group checkbox-group" style={{ flexDirection: 'row', alignItems: 'center', gap: '8px' }}>
-                <input 
+              <div
+                className="form-group checkbox-group"
+                style={{ flexDirection: 'row', alignItems: 'center', gap: '8px' }}
+              >
+                <input
                   id="offline-fallback-toggle"
                   type="checkbox"
                   checked={useOfflineFallback}
                   onChange={(e) => setUseOfflineFallback(e.target.checked)}
                 />
                 <label htmlFor="offline-fallback-toggle" style={{ margin: 0, cursor: 'pointer' }}>
-                  Enable automatic fallback to offline heuristic engine if network or rate-limits occur
+                  Enable automatic fallback to offline heuristic engine if network or rate-limits
+                  occur
                 </label>
               </div>
 
               <div className="key-actions-row">
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   className="btn btn-secondary btn-sm"
                   onClick={handleTestKey}
                   disabled={testStatus === 'testing' || !apiKey.trim()}
                 >
-                  {testStatus === 'testing' ? 'Testing Key...' : testStatus === 'success' ? '✅ Key Valid!' : testStatus === 'failed' ? '❌ Key Invalid' : 'Test API Connection'}
+                  {testStatus === 'testing'
+                    ? 'Testing Key...'
+                    : testStatus === 'success'
+                      ? '✅ Key Valid!'
+                      : testStatus === 'failed'
+                        ? '❌ Key Invalid'
+                        : 'Test API Connection'}
                 </button>
 
                 <button type="submit" className="btn btn-primary btn-sm">
-                  {saveSuccess ? <><Check size={14} /> Saved!</> : 'Save Settings'}
+                  {saveSuccess ? (
+                    <>
+                      <Check size={14} /> Saved!
+                    </>
+                  ) : (
+                    'Save Settings'
+                  )}
                 </button>
               </div>
             </form>
@@ -226,14 +257,12 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           <section className="settings-section">
             <h4>Data Management & Test Restores</h4>
             <p className="settings-desc">
-              Export all event records to JSON or restore default starter templates (Wedding, 10th Birthday, Community Clean-up).
+              Export all event records to JSON or restore default starter templates (Wedding, 10th
+              Birthday, Community Clean-up).
             </p>
 
             <div className="backup-actions-grid">
-              <button 
-                className="btn btn-secondary btn-sm"
-                onClick={handleExportBackup}
-              >
+              <button className="btn btn-secondary btn-sm" onClick={handleExportBackup}>
                 <Download size={15} />
                 <span>Export JSON Backup</span>
               </button>
@@ -241,18 +270,22 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               <label className="btn btn-secondary btn-sm file-upload-label">
                 <Upload size={15} />
                 <span>Import JSON Backup</span>
-                <input 
-                  type="file" 
+                <input
+                  type="file"
                   accept=".json,application/json"
                   onChange={handleFileUpload}
                   style={{ display: 'none' }}
                 />
               </label>
 
-              <button 
+              <button
                 className="btn btn-ghost btn-sm text-danger"
                 onClick={() => {
-                  if (window.confirm('Reset all events to the initial starter templates? Any custom unsaved plans will be replaced.')) {
+                  if (
+                    window.confirm(
+                      'Reset all events to the initial starter templates? Any custom unsaved plans will be replaced.'
+                    )
+                  ) {
                     onResetData();
                     onClose();
                   }
@@ -279,15 +312,24 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             <div className="eval-checklist">
               <div className="eval-item">
                 <ShieldCheck size={16} className="text-emerald" />
-                <span><strong>Header-Based Auth:</strong> API key is sent via <code>x-goog-api-key</code> headers, not query parameters.</span>
+                <span>
+                  <strong>Header-Based Auth:</strong> API key is sent via{' '}
+                  <code>x-goog-api-key</code> headers, not query parameters.
+                </span>
               </div>
               <div className="eval-item">
                 <ShieldCheck size={16} className="text-emerald" />
-                <span><strong>Memory Isolation:</strong> Keys live in <code>sessionStorage</code> and clear automatically when closed.</span>
+                <span>
+                  <strong>Memory Isolation:</strong> Keys live in <code>sessionStorage</code> and
+                  clear automatically when closed.
+                </span>
               </div>
               <div className="eval-item">
                 <ShieldCheck size={16} className="text-emerald" />
-                <span><strong>Deep Schema Validation:</strong> Nested items in imported JSON are strictly validated to prevent UI crashes.</span>
+                <span>
+                  <strong>Deep Schema Validation:</strong> Nested items in imported JSON are
+                  strictly validated to prevent UI crashes.
+                </span>
               </div>
             </div>
           </section>

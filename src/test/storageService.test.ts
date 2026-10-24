@@ -1,10 +1,12 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { storageService } from '../services/storageService';
+import { DEFAULT_AI_MODEL } from '../services/aiPlannerEngine';
 import { INITIAL_EVENTS } from '../data/mockEvents';
 
 describe('storageService - Client Persistence & Schema Validation', () => {
   beforeEach(() => {
     localStorage.clear();
+    sessionStorage.clear();
   });
 
   it('loads starter events if storage is empty', () => {
@@ -50,6 +52,63 @@ describe('storageService - Client Persistence & Schema Validation', () => {
     // Malformed JSON test
     const malformedResult = storageService.importDataJson('not a json');
     expect(malformedResult.success).toBe(false);
+  });
+
+  it('rejects malformed nested collections on import without overwriting stored events', () => {
+    storageService.saveEvents(INITIAL_EVENTS);
+
+    // Malformed budget item: [null]
+    const malformedBudgetPayload = JSON.stringify({
+      events: [
+        {
+          id: 'test-event-1',
+          title: 'Test Event with Null Item',
+          type: 'wedding',
+          budgetItems: [null]
+        }
+      ]
+    });
+
+    const res = storageService.importDataJson(malformedBudgetPayload);
+    expect(res.success).toBe(false);
+    expect(res.error).toContain('Malformed budget item');
+
+    // Ensure previous data in storage was NOT overwritten
+    const preservedEvents = storageService.loadEvents();
+    expect(preservedEvents.length).toBe(INITIAL_EVENTS.length);
+    expect(preservedEvents[0].id).toBe(INITIAL_EVENTS[0].id);
+
+    // Malformed timeline item: [null]
+    const malformedTimelinePayload = JSON.stringify({
+      events: [
+        {
+          id: 'test-event-2',
+          title: 'Test Event with Null Timeline',
+          type: 'birthday',
+          timelineItems: [null]
+        }
+      ]
+    });
+    const timelineRes = storageService.importDataJson(malformedTimelinePayload);
+    expect(timelineRes.success).toBe(false);
+    expect(timelineRes.error).toContain('Malformed timeline item');
+  });
+
+  it('migrates retired or invalid AI models to DEFAULT_AI_MODEL', () => {
+    // Simulate user having an old retired model in localStorage
+    localStorage.setItem('celebr_ai_te_model', 'gemini-1.0-ultra-retired');
+    const settings = storageService.loadAISettings();
+    expect(settings.model).toBe(DEFAULT_AI_MODEL);
+
+    // Saving an invalid model should automatically sanitize to DEFAULT_AI_MODEL
+    storageService.saveAISettings({
+      apiKey: 'test-key',
+      model: 'completely-invalid-model-xyz',
+      useOfflineFallback: true
+    });
+    const refreshed = storageService.loadAISettings();
+    expect(refreshed.model).toBe(DEFAULT_AI_MODEL);
+    expect(refreshed.apiKey).toBe('test-key');
   });
 
   it('handles theme loading and switching', () => {

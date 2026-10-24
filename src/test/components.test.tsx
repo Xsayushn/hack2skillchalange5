@@ -1,4 +1,3 @@
-import React from 'react';
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom/vitest';
@@ -17,13 +16,7 @@ describe('UI Component Integration Tests', () => {
   it('EventHeader renders title, meta statistics, and fires tab changes', () => {
     const handleTabChange = vi.fn();
 
-    render(
-      <EventHeader 
-        event={sampleEvent}
-        activeTab="overview"
-        onTabChange={handleTabChange}
-      />
-    );
+    render(<EventHeader event={sampleEvent} activeTab="overview" onTabChange={handleTabChange} />);
 
     expect(screen.getByText(sampleEvent.title)).toBeInTheDocument();
     expect(screen.getByText(/Pinecrest Botanical Estate/)).toBeInTheDocument();
@@ -43,11 +36,7 @@ describe('UI Component Integration Tests', () => {
     const zeroBudgetEvent = { ...sampleEvent, totalBudget: 0 };
 
     render(
-      <BudgetTab 
-        event={zeroBudgetEvent}
-        onUpdateEvent={handleUpdate}
-        onAskAI={handleAskAI}
-      />
+      <BudgetTab event={zeroBudgetEvent} onUpdateEvent={handleUpdate} onAskAI={handleAskAI} />
     );
 
     // Verify it rendered without NaN or division by zero crashes
@@ -62,7 +51,9 @@ describe('UI Component Integration Tests', () => {
     expect(screen.getByLabelText(/Item Name \/ Service/i)).toBeInTheDocument();
 
     // Fill form and submit
-    fireEvent.change(screen.getByLabelText(/Item Name \/ Service/i), { target: { value: 'Late Night Tacos' } });
+    fireEvent.change(screen.getByLabelText(/Item Name \/ Service/i), {
+      target: { value: 'Late Night Tacos' }
+    });
     fireEvent.click(screen.getByRole('button', { name: /Save Line Item/i }));
 
     expect(handleUpdate).toHaveBeenCalled();
@@ -72,13 +63,7 @@ describe('UI Component Integration Tests', () => {
     const handleUpdate = vi.fn();
     const handleAskAI = vi.fn();
 
-    render(
-      <TimelineTab 
-        event={sampleEvent}
-        onUpdateEvent={handleUpdate}
-        onAskAI={handleAskAI}
-      />
-    );
+    render(<TimelineTab event={sampleEvent} onUpdateEvent={handleUpdate} onAskAI={handleAskAI} />);
 
     expect(screen.getByText('Schedule of Milestones & Run-of-Show')).toBeInTheDocument();
 
@@ -95,11 +80,7 @@ describe('UI Component Integration Tests', () => {
     const handleAskAI = vi.fn();
 
     render(
-      <IdeasMoodboardTab 
-        event={sampleEvent}
-        onUpdateEvent={handleUpdate}
-        onAskAI={handleAskAI}
-      />
+      <IdeasMoodboardTab event={sampleEvent} onUpdateEvent={handleUpdate} onAskAI={handleAskAI} />
     );
 
     expect(screen.getByText(sampleEvent.personalizedIdeas.themeName)).toBeInTheDocument();
@@ -113,13 +94,7 @@ describe('UI Component Integration Tests', () => {
     const handleUpdate = vi.fn();
     const handleAskAI = vi.fn();
 
-    render(
-      <GuestListTab 
-        event={sampleEvent}
-        onUpdateEvent={handleUpdate}
-        onAskAI={handleAskAI}
-      />
-    );
+    render(<GuestListTab event={sampleEvent} onUpdateEvent={handleUpdate} onAskAI={handleAskAI} />);
 
     expect(screen.getByText('Confirmed Attendees')).toBeInTheDocument();
     expect(screen.getByText('Dietary Inclusivity Alert:')).toBeInTheDocument();
@@ -135,13 +110,7 @@ describe('UI Component Integration Tests', () => {
     const handleClose = vi.fn();
     const handleCreated = vi.fn();
 
-    render(
-      <EventWizardModal 
-        isOpen={true}
-        onClose={handleClose}
-        onEventCreated={handleCreated}
-      />
-    );
+    render(<EventWizardModal isOpen={true} onClose={handleClose} onEventCreated={handleCreated} />);
 
     expect(screen.getByRole('dialog')).toBeInTheDocument();
     expect(screen.getByText('Autonomous GenAI Event Architect')).toBeInTheDocument();
@@ -158,7 +127,7 @@ describe('UI Component Integration Tests', () => {
     const handleImport = vi.fn();
 
     render(
-      <SettingsModal 
+      <SettingsModal
         isOpen={true}
         onClose={handleClose}
         aiSettings={{ apiKey: '', model: 'gemini-1.5-flash', useOfflineFallback: true }}
@@ -180,7 +149,7 @@ describe('UI Component Integration Tests', () => {
     const handleSave = vi.fn();
 
     render(
-      <SettingsModal 
+      <SettingsModal
         isOpen={true}
         onClose={handleClose}
         aiSettings={{ apiKey: '', model: 'gemini-1.5-flash', useOfflineFallback: true }}

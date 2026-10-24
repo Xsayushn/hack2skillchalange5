@@ -113,7 +113,8 @@ export const INITIAL_EVENTS: EventPlan[] = [
         id: 't-1',
         phase: 'foundation',
         title: 'Lock In Primary Venue & Security Deposit',
-        description: 'Signed contract for Pinecrest Estate glasshouse and paid 50% reservation deposit.',
+        description:
+          'Signed contract for Pinecrest Estate glasshouse and paid 50% reservation deposit.',
         targetDateOrTime: '6 Months Prior',
         completed: true,
         priority: 'high'
@@ -131,7 +132,8 @@ export const INITIAL_EVENTS: EventPlan[] = [
         id: 't-3',
         phase: 'bookings',
         title: 'Menu Tasting & Specialty Cocktail Curation',
-        description: 'Taste seasonal entrees and finalize His & Hers signature drinks with Cedar Grove Catering.',
+        description:
+          'Taste seasonal entrees and finalize His & Hers signature drinks with Cedar Grove Catering.',
         targetDateOrTime: '8 Weeks Prior',
         completed: true,
         priority: 'medium'
@@ -301,7 +303,8 @@ export const INITIAL_EVENTS: EventPlan[] = [
     ],
     personalizedIdeas: {
       themeName: 'Enchanted Forest Twilight',
-      themeDescription: 'A dreamy, fairy-tale celebration immersed in lush moss, warm candlelight, deep forest tones, and champagne accents.',
+      themeDescription:
+        'A dreamy, fairy-tale celebration immersed in lush moss, warm candlelight, deep forest tones, and champagne accents.',
       colorPalette: [
         { name: 'Emerald Velvet', hex: '#1b4332' },
         { name: 'Warm Amber Gold', hex: '#d4a373' },
@@ -312,19 +315,22 @@ export const INITIAL_EVENTS: EventPlan[] = [
       activities: [
         {
           name: 'Polaroid Memory Tree',
-          description: 'Guests snap a vintage photo, write advice on the back, and clip it onto a twine-wrapped olive branch tree.',
+          description:
+            'Guests snap a vintage photo, write advice on the back, and clip it onto a twine-wrapped olive branch tree.',
           targetAudience: 'All Guests',
           duration: 'Throughout Evening'
         },
         {
           name: 'Artisan S’mores & Fireside Lounge',
-          description: 'Marshmallow roasting bar with gourmet flavored grahams, dark sea salt chocolates, and cozy woven blankets.',
+          description:
+            'Marshmallow roasting bar with gourmet flavored grahams, dark sea salt chocolates, and cozy woven blankets.',
           targetAudience: 'Reception Guests',
           duration: '8:30 PM - 10:30 PM'
         },
         {
           name: 'Custom Couple Trivia Game',
-          description: 'Fun 5-minute table trivia quizzing guests on Liam and Elena’s travel adventures before dessert.',
+          description:
+            'Fun 5-minute table trivia quizzing guests on Liam and Elena’s travel adventures before dessert.',
           targetAudience: 'Dinner Guests',
           duration: '15 Minutes'
         }
@@ -349,12 +355,12 @@ export const INITIAL_EVENTS: EventPlan[] = [
         {
           title: 'Maid of Honor Heartfelt Toast',
           role: 'Best Friend & Sister',
-          text: "From treehouse pacts to standing here watching Elena radiate pure joy next to Liam, true love looks effortless when two kindred souls find each other. Liam, thank you for loving her with such patience, kindness, and spontaneous laughter. May your life together always feel like your favorite sunny Sunday morning. To Elena and Liam!"
+          text: 'From treehouse pacts to standing here watching Elena radiate pure joy next to Liam, true love looks effortless when two kindred souls find each other. Liam, thank you for loving her with such patience, kindness, and spontaneous laughter. May your life together always feel like your favorite sunny Sunday morning. To Elena and Liam!'
         },
         {
           title: 'Couple’s Welcome & Gratitude Toast',
           role: 'Bride & Groom',
-          text: "Looking out into this room and seeing faces from every chapter of our lives gathered under one roof fills our hearts beyond measure. Some of you crossed oceans and states to be here. Thank you for your unconditional love, your advice, and your friendship. Eat, drink, and dance the night away with us!"
+          text: 'Looking out into this room and seeing faces from every chapter of our lives gathered under one roof fills our hearts beyond measure. Some of you crossed oceans and states to be here. Thank you for your unconditional love, your advice, and your friendship. Eat, drink, and dance the night away with us!'
         }
       ],
       decorSuggestions: [
@@ -369,13 +375,54 @@ export const INITIAL_EVENTS: EventPlan[] = [
       ]
     },
     guests: [
-      { id: 'g-1', name: 'Sophia & David Vance', group: 'Groom Family', rsvpStatus: 'confirmed', dietaryNotes: 'Vegetarian for Sophia', plusOnes: 1, tableOrZone: 'Table 1 - Rosewood' },
-      { id: 'g-2', name: 'Maya Patel', group: 'Bridal Party', rsvpStatus: 'confirmed', dietaryNotes: 'Gluten-Free', plusOnes: 1, tableOrZone: 'Table 2 - Willow' },
-      { id: 'g-3', name: 'Arthur Pendelton', group: 'College Friends', rsvpStatus: 'confirmed', dietaryNotes: 'None', plusOnes: 0, tableOrZone: 'Table 3 - Cedar' },
-      { id: 'g-4', name: 'Uncle George Vance', group: 'Extended Family', rsvpStatus: 'declined', dietaryNotes: 'N/A', plusOnes: 0, tableOrZone: 'N/A' },
-      { id: 'g-5', name: 'Lucas Scott', group: 'Colleagues', rsvpStatus: 'pending', dietaryNotes: 'Pending response', plusOnes: 1, tableOrZone: 'Table 4 - Pine' }
+      {
+        id: 'g-1',
+        name: 'Sophia & David Vance',
+        group: 'Groom Family',
+        rsvpStatus: 'confirmed',
+        dietaryNotes: 'Vegetarian for Sophia',
+        plusOnes: 1,
+        tableOrZone: 'Table 1 - Rosewood'
+      },
+      {
+        id: 'g-2',
+        name: 'Maya Patel',
+        group: 'Bridal Party',
+        rsvpStatus: 'confirmed',
+        dietaryNotes: 'Gluten-Free',
+        plusOnes: 1,
+        tableOrZone: 'Table 2 - Willow'
+      },
+      {
+        id: 'g-3',
+        name: 'Arthur Pendelton',
+        group: 'College Friends',
+        rsvpStatus: 'confirmed',
+        dietaryNotes: 'None',
+        plusOnes: 0,
+        tableOrZone: 'Table 3 - Cedar'
+      },
+      {
+        id: 'g-4',
+        name: 'Uncle George Vance',
+        group: 'Extended Family',
+        rsvpStatus: 'declined',
+        dietaryNotes: 'N/A',
+        plusOnes: 0,
+        tableOrZone: 'N/A'
+      },
+      {
+        id: 'g-5',
+        name: 'Lucas Scott',
+        group: 'Colleagues',
+        rsvpStatus: 'pending',
+        dietaryNotes: 'Pending response',
+        plusOnes: 1,
+        tableOrZone: 'Table 4 - Pine'
+      }
     ],
-    notes: 'Bride’s sister will coordinate with florist for morning bouquet delivery at the bridal suite.',
+    notes:
+      'Bride’s sister will coordinate with florist for morning bouquet delivery at the bridal suite.',
     createdAt: '2026-03-01T10:00:00Z',
     updatedAt: '2026-03-15T14:30:00Z'
   },
@@ -526,7 +573,8 @@ export const INITIAL_EVENTS: EventPlan[] = [
     ],
     personalizedIdeas: {
       themeName: 'Cosmic Superhero Academy',
-      themeDescription: 'Bold comic pop-art aesthetics with neon primary tones, heroic training missions, and personalized heroic gear.',
+      themeDescription:
+        'Bold comic pop-art aesthetics with neon primary tones, heroic training missions, and personalized heroic gear.',
       colorPalette: [
         { name: 'Comic Book Red', hex: '#e63946' },
         { name: 'Electric Cyan', hex: '#457b9d' },
@@ -536,13 +584,15 @@ export const INITIAL_EVENTS: EventPlan[] = [
       activities: [
         {
           name: 'The Kryptonite Laser Escape',
-          description: 'Team relay through laser maze dodging light sensors to deactivate the "alien device".',
+          description:
+            'Team relay through laser maze dodging light sensors to deactivate the "alien device".',
           targetAudience: 'Kids Age 7-12',
           duration: '30 Minutes'
         },
         {
           name: 'Custom Shield Design Workshop',
-          description: 'Kids use foam discs, glow-in-the-dark paint markers, and glitter stickers to build their unique emblem.',
+          description:
+            'Kids use foam discs, glow-in-the-dark paint markers, and glitter stickers to build their unique emblem.',
           targetAudience: 'All Kids',
           duration: '20 Minutes'
         }
@@ -566,7 +616,7 @@ export const INITIAL_EVENTS: EventPlan[] = [
         {
           title: 'Mom & Dad Birthday Toast to Leo',
           role: 'Parents',
-          text: "Leo, from the minute you learned to run, you’ve tackled every day with curiosity, immense kindness, and the heart of a true superhero. Watching you turn double digits today makes us prouder than words can describe. Always keep standing up for your friends and dreaming bigger than the galaxy. Happy 10th Birthday, our hero!"
+          text: 'Leo, from the minute you learned to run, you’ve tackled every day with curiosity, immense kindness, and the heart of a true superhero. Watching you turn double digits today makes us prouder than words can describe. Always keep standing up for your friends and dreaming bigger than the galaxy. Happy 10th Birthday, our hero!'
         }
       ],
       decorSuggestions: [
@@ -579,9 +629,33 @@ export const INITIAL_EVENTS: EventPlan[] = [
       ]
     },
     guests: [
-      { id: 'bg-1', name: 'Zack Miller', group: 'School Pals', rsvpStatus: 'confirmed', dietaryNotes: 'Nut allergy', plusOnes: 0, tableOrZone: 'Squad Alpha' },
-      { id: 'bg-2', name: 'Emily Watson', group: 'Soccer Team', rsvpStatus: 'confirmed', dietaryNotes: 'None', plusOnes: 0, tableOrZone: 'Squad Alpha' },
-      { id: 'bg-3', name: 'Noah Chen', group: 'Neighbors', rsvpStatus: 'confirmed', dietaryNotes: 'Dairy free', plusOnes: 0, tableOrZone: 'Squad Beta' }
+      {
+        id: 'bg-1',
+        name: 'Zack Miller',
+        group: 'School Pals',
+        rsvpStatus: 'confirmed',
+        dietaryNotes: 'Nut allergy',
+        plusOnes: 0,
+        tableOrZone: 'Squad Alpha'
+      },
+      {
+        id: 'bg-2',
+        name: 'Emily Watson',
+        group: 'Soccer Team',
+        rsvpStatus: 'confirmed',
+        dietaryNotes: 'None',
+        plusOnes: 0,
+        tableOrZone: 'Squad Alpha'
+      },
+      {
+        id: 'bg-3',
+        name: 'Noah Chen',
+        group: 'Neighbors',
+        rsvpStatus: 'confirmed',
+        dietaryNotes: 'Dairy free',
+        plusOnes: 0,
+        tableOrZone: 'Squad Beta'
+      }
     ],
     notes: 'Bring cake cutter and birthday candle lighter from home.',
     createdAt: '2026-10-01T12:00:00Z',
@@ -753,7 +827,8 @@ export const INITIAL_EVENTS: EventPlan[] = [
     ],
     personalizedIdeas: {
       themeName: 'Rooted in Community: Clean & Green',
-      themeDescription: 'A wholesome, vibrant eco-celebration transforming civic pride into tangible environmental impact and neighborly camaraderie.',
+      themeDescription:
+        'A wholesome, vibrant eco-celebration transforming civic pride into tangible environmental impact and neighborly camaraderie.',
       colorPalette: [
         { name: 'Forest Moss', hex: '#2d6a4f' },
         { name: 'Sunflower Yellow', hex: '#f3c053' },
@@ -763,19 +838,22 @@ export const INITIAL_EVENTS: EventPlan[] = [
       activities: [
         {
           name: 'The Golden Trash Picker Challenge',
-          description: 'Fun competition for youth teams with prizes for the most unusual piece of recycled debris found.',
+          description:
+            'Fun competition for youth teams with prizes for the most unusual piece of recycled debris found.',
           targetAudience: 'Youth & Families',
           duration: 'Morning Drive'
         },
         {
           name: 'Pollinator Seed Bomb Workshop',
-          description: 'Kids roll native wildflower seeds in clay and compost to take home for backyard gardens.',
+          description:
+            'Kids roll native wildflower seeds in clay and compost to take home for backyard gardens.',
           targetAudience: 'Children & Gardeners',
           duration: '1:00 PM - 2:30 PM'
         },
         {
           name: 'Neighborhood Recipe & Seed Swap',
-          description: 'A communal table where residents exchange heirloom garden seeds and home-cooked specialty recipes.',
+          description:
+            'A communal table where residents exchange heirloom garden seeds and home-cooked specialty recipes.',
           targetAudience: 'All Residents',
           duration: 'All Afternoon'
         }
@@ -799,7 +877,7 @@ export const INITIAL_EVENTS: EventPlan[] = [
         {
           title: 'Opening Welcome & Call to Action',
           role: 'Association President',
-          text: "Good morning Oakridge! Look around at your neighbors standing beside you today. We aren’t just cleaning streets and raking leaves—we are stitching the fabric of our community tighter. Today proves that when neighbors unite for a shared passion, our hometown becomes brighter, greener, and more resilient. Let’s make today count!"
+          text: 'Good morning Oakridge! Look around at your neighbors standing beside you today. We aren’t just cleaning streets and raking leaves—we are stitching the fabric of our community tighter. Today proves that when neighbors unite for a shared passion, our hometown becomes brighter, greener, and more resilient. Let’s make today count!'
         }
       ],
       decorSuggestions: [
@@ -812,9 +890,30 @@ export const INITIAL_EVENTS: EventPlan[] = [
       ]
     },
     guests: [
-      { id: 'cg-1', name: 'The Henderson Family (4)', group: 'Zone A Captains', rsvpStatus: 'confirmed', plusOnes: 3, tableOrZone: 'Zone A - Creek Trail' },
-      { id: 'cg-2', name: 'Oakridge High Eco-Club (18)', group: 'Student Volunteers', rsvpStatus: 'confirmed', plusOnes: 17, tableOrZone: 'Zone B - Park Center' },
-      { id: 'cg-3', name: 'Councilmember Rachel Torres', group: 'Civic Guests', rsvpStatus: 'confirmed', plusOnes: 1, tableOrZone: 'VIP Pavilion' }
+      {
+        id: 'cg-1',
+        name: 'The Henderson Family (4)',
+        group: 'Zone A Captains',
+        rsvpStatus: 'confirmed',
+        plusOnes: 3,
+        tableOrZone: 'Zone A - Creek Trail'
+      },
+      {
+        id: 'cg-2',
+        name: 'Oakridge High Eco-Club (18)',
+        group: 'Student Volunteers',
+        rsvpStatus: 'confirmed',
+        plusOnes: 17,
+        tableOrZone: 'Zone B - Park Center'
+      },
+      {
+        id: 'cg-3',
+        name: 'Councilmember Rachel Torres',
+        group: 'Civic Guests',
+        rsvpStatus: 'confirmed',
+        plusOnes: 1,
+        tableOrZone: 'VIP Pavilion'
+      }
     ],
     notes: 'Sound equipment must be powered down by 3:30 PM per park permit regulation.',
     createdAt: '2026-08-15T09:00:00Z',

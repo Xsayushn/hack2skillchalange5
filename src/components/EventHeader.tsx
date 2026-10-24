@@ -1,10 +1,10 @@
 import React from 'react';
-import { 
-  Calendar, 
-  MapPin, 
-  Users, 
-  Clock, 
-  DollarSign, 
+import {
+  Calendar,
+  MapPin,
+  Users,
+  Clock,
+  DollarSign,
   Sparkles,
   PieChart,
   ListTodo,
@@ -14,8 +14,10 @@ import {
   FileSpreadsheet
 } from 'lucide-react';
 import { EventPlan } from '../types';
+import '../styles/eventHeader.css';
 
-export type TabType = 'overview' | 'budget' | 'timeline' | 'vendors' | 'ideas' | 'guests' | 'dossier';
+export type TabType =
+  'overview' | 'budget' | 'timeline' | 'vendors' | 'ideas' | 'guests' | 'dossier';
 
 interface EventHeaderProps {
   event: EventPlan;
@@ -23,43 +25,71 @@ interface EventHeaderProps {
   onTabChange: (tab: TabType) => void;
 }
 
-export const EventHeader: React.FC<EventHeaderProps> = ({
-  event,
-  activeTab,
-  onTabChange
-}) => {
+export const EventHeader: React.FC<EventHeaderProps> = ({ event, activeTab, onTabChange }) => {
   // Financial metrics
-  const totalSpent = event.budgetItems.reduce((acc, b) => acc + (b.actualCost || b.estimatedCost), 0);
+  const totalSpent = event.budgetItems.reduce(
+    (acc, b) => acc + (b.actualCost || b.estimatedCost),
+    0
+  );
   const remaining = event.totalBudget - totalSpent;
   const budgetPercent = Math.min(100, Math.round((totalSpent / (event.totalBudget || 1)) * 100));
 
   // Timeline metrics
-  const completedTasks = event.timelineItems.filter(t => t.completed).length;
+  const completedTasks = event.timelineItems.filter((t) => t.completed).length;
   const totalTasks = event.timelineItems.length;
   const taskPercent = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
 
   // Guest metrics
-  const confirmedGuests = event.guests.filter(g => g.rsvpStatus === 'confirmed').reduce((acc, g) => acc + 1 + g.plusOnes, 0);
+  const confirmedGuests = event.guests
+    .filter((g) => g.rsvpStatus === 'confirmed')
+    .reduce((acc, g) => acc + 1 + g.plusOnes, 0);
 
   // Countdown Calculation
-  const daysRemaining = Math.ceil((new Date(event.date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+  const daysRemaining = Math.ceil(
+    (new Date(event.date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)
+  );
 
   const getBadgeClass = (type: string) => {
     switch (type) {
-      case 'wedding': return 'badge-wedding';
-      case 'birthday': return 'badge-birthday';
-      case 'community': case 'festival': return 'badge-community';
-      default: return 'badge-neutral';
+      case 'wedding':
+        return 'badge-wedding';
+      case 'birthday':
+        return 'badge-birthday';
+      case 'community':
+      case 'festival':
+        return 'badge-community';
+      default:
+        return 'badge-neutral';
     }
   };
 
   const tabs: { id: TabType; label: string; icon: React.ReactNode; badge?: string | number }[] = [
     { id: 'overview', label: 'Overview', icon: <PieChart size={17} /> },
-    { id: 'budget', label: 'Budget Planner', icon: <DollarSign size={17} />, badge: `${event.currencySymbol}${totalSpent.toLocaleString()}` },
-    { id: 'timeline', label: 'Timeline & Run-of-Show', icon: <ListTodo size={17} />, badge: `${completedTasks}/${totalTasks}` },
-    { id: 'vendors', label: 'Vendor Directory', icon: <Handshake size={17} />, badge: event.vendors.length },
+    {
+      id: 'budget',
+      label: 'Budget Planner',
+      icon: <DollarSign size={17} />,
+      badge: `${event.currencySymbol}${totalSpent.toLocaleString()}`
+    },
+    {
+      id: 'timeline',
+      label: 'Timeline & Run-of-Show',
+      icon: <ListTodo size={17} />,
+      badge: `${completedTasks}/${totalTasks}`
+    },
+    {
+      id: 'vendors',
+      label: 'Vendor Directory',
+      icon: <Handshake size={17} />,
+      badge: event.vendors.length
+    },
     { id: 'ideas', label: 'AI Ideas & Moodboard', icon: <Lightbulb size={17} /> },
-    { id: 'guests', label: 'Guest & RSVP Hub', icon: <UserCheck size={17} />, badge: confirmedGuests },
+    {
+      id: 'guests',
+      label: 'Guest & RSVP Hub',
+      icon: <UserCheck size={17} />,
+      badge: confirmedGuests
+    },
     { id: 'dossier', label: 'Master Dossier', icon: <FileSpreadsheet size={17} /> }
   ];
 
@@ -69,15 +99,13 @@ export const EventHeader: React.FC<EventHeaderProps> = ({
       <div className="event-header-main">
         <div className="event-header-info">
           <div className="event-meta-top">
-            <span className={`badge ${getBadgeClass(event.type)}`}>
-              {event.type.toUpperCase()}
-            </span>
+            <span className={`badge ${getBadgeClass(event.type)}`}>{event.type.toUpperCase()}</span>
             <span className="event-countdown-badge">
               <Clock size={13} />
-              {daysRemaining > 0 
-                ? `${daysRemaining} days remaining` 
-                : daysRemaining === 0 
-                  ? 'Celebration is Today! 🎉' 
+              {daysRemaining > 0
+                ? `${daysRemaining} days remaining`
+                : daysRemaining === 0
+                  ? 'Celebration is Today! 🎉'
                   : `${Math.abs(daysRemaining)} days ago`}
             </span>
           </div>
@@ -90,11 +118,11 @@ export const EventHeader: React.FC<EventHeaderProps> = ({
             <span className="meta-item">
               <Calendar size={15} className="meta-icon" />
               <time dateTime={event.date}>
-                {new Date(event.date + 'T00:00:00').toLocaleDateString(undefined, { 
-                  weekday: 'short', 
-                  month: 'short', 
-                  day: 'numeric', 
-                  year: 'numeric' 
+                {new Date(event.date + 'T00:00:00').toLocaleDateString(undefined, {
+                  weekday: 'short',
+                  month: 'short',
+                  day: 'numeric',
+                  year: 'numeric'
                 })}
               </time>
             </span>
@@ -121,13 +149,19 @@ export const EventHeader: React.FC<EventHeaderProps> = ({
           <div className="kpi-card">
             <span className="kpi-label">Committed Spend</span>
             <div className="kpi-val-group">
-              <span className="kpi-number">{event.currencySymbol}{totalSpent.toLocaleString()}</span>
-              <span className="kpi-sub">of {event.currencySymbol}{event.totalBudget.toLocaleString()}</span>
+              <span className="kpi-number">
+                {event.currencySymbol}
+                {totalSpent.toLocaleString()}
+              </span>
+              <span className="kpi-sub">
+                of {event.currencySymbol}
+                {event.totalBudget.toLocaleString()}
+              </span>
             </div>
             <div className="progress-bar-track" title={`${budgetPercent}% allocated`}>
-              <div 
-                className={`progress-bar-fill ${remaining < 0 ? 'fill-danger' : 'fill-primary'}`} 
-                style={{ width: `${Math.min(100, budgetPercent)}%` }} 
+              <div
+                className={`progress-bar-fill ${remaining < 0 ? 'fill-danger' : 'fill-primary'}`}
+                style={{ width: `${Math.min(100, budgetPercent)}%` }}
               />
             </div>
           </div>
@@ -136,12 +170,14 @@ export const EventHeader: React.FC<EventHeaderProps> = ({
             <span className="kpi-label">Tasks Progress</span>
             <div className="kpi-val-group">
               <span className="kpi-number">{taskPercent}%</span>
-              <span className="kpi-sub">{completedTasks} of {totalTasks} done</span>
+              <span className="kpi-sub">
+                {completedTasks} of {totalTasks} done
+              </span>
             </div>
             <div className="progress-bar-track">
-              <div 
-                className="progress-bar-fill fill-emerald" 
-                style={{ width: `${taskPercent}%` }} 
+              <div
+                className="progress-bar-fill fill-emerald"
+                style={{ width: `${taskPercent}%` }}
               />
             </div>
           </div>
@@ -153,9 +189,11 @@ export const EventHeader: React.FC<EventHeaderProps> = ({
               <span className="kpi-sub">confirmed of {event.targetGuests}</span>
             </div>
             <div className="progress-bar-track">
-              <div 
-                className="progress-bar-fill fill-brand" 
-                style={{ width: `${Math.min(100, Math.round((confirmedGuests / (event.targetGuests || 1)) * 100))}%` }} 
+              <div
+                className="progress-bar-fill fill-brand"
+                style={{
+                  width: `${Math.min(100, Math.round((confirmedGuests / (event.targetGuests || 1)) * 100))}%`
+                }}
               />
             </div>
           </div>
@@ -179,9 +217,7 @@ export const EventHeader: React.FC<EventHeaderProps> = ({
                 >
                   {tab.icon}
                   <span>{tab.label}</span>
-                  {tab.badge !== undefined && (
-                    <span className="tab-badge">{tab.badge}</span>
-                  )}
+                  {tab.badge !== undefined && <span className="tab-badge">{tab.badge}</span>}
                 </button>
               </li>
             );
