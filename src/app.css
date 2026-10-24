@@ -2583,3 +2583,25 @@
   color: var(--brand-primary);
   flex-shrink: 0;
 }
+
+.app-notice-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: rgba(234, 179, 8, 0.12);
+  border: 1px solid rgba(234, 179, 8, 0.35);
+  border-radius: var(--radius-md);
+  padding: 12px 18px;
+  margin-bottom: 20px;
+  backdrop-filter: blur(10px);
+  color: var(--text-primary);
+  font-size: 0.9rem;
+}
+
+.app-notice-content {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+

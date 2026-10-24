@@ -1,5 +1,6 @@
 import { EventPlan, AISettings, EventType, BudgetCategory, PaymentStatus, TimelinePhase, VendorStatus, RsvpStatus } from '../types';
 import { INITIAL_EVENTS } from '../data/mockEvents';
+import { DEFAULT_AI_MODEL, ALLOWED_MODELS } from './aiPlannerEngine';
 
 const STORAGE_KEYS = {
   EVENTS: 'celebr_ai_te_events_v1',
@@ -65,7 +66,9 @@ export const storageService = {
       // sessionStorage restricted fallback
     }
 
-    const model = localStorage.getItem(STORAGE_KEYS.AI_MODEL) || 'gemini-1.5-flash';
+    const rawModel = localStorage.getItem(STORAGE_KEYS.AI_MODEL);
+    // Migration: If previously saved model is retired or not in ALLOWED_MODELS, seamlessly reset to DEFAULT_AI_MODEL
+    const model = (rawModel && ALLOWED_MODELS.includes(rawModel)) ? rawModel : DEFAULT_AI_MODEL;
     const useOffline = localStorage.getItem(STORAGE_KEYS.AI_OFFLINE_FLAG) !== 'false';
 
     return {
@@ -83,7 +86,8 @@ export const storageService = {
       } else {
         sessionStorage.removeItem(SESSION_KEYS.API_KEY);
       }
-      localStorage.setItem(STORAGE_KEYS.AI_MODEL, settings.model || 'gemini-1.5-flash');
+      const validModel = (settings.model && ALLOWED_MODELS.includes(settings.model)) ? settings.model : DEFAULT_AI_MODEL;
+      localStorage.setItem(STORAGE_KEYS.AI_MODEL, validModel);
       localStorage.setItem(STORAGE_KEYS.AI_OFFLINE_FLAG, String(settings.useOfflineFallback));
     } catch (err) {
       console.error('Failed to save AI settings', err);

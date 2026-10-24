@@ -45,7 +45,8 @@ import {
 } from './services/storageService';
 import { 
   Sparkles, 
-  Bot 
+  Bot,
+  X
 } from 'lucide-react';
 
 export const App: React.FC = () => {
@@ -63,6 +64,7 @@ export const App: React.FC = () => {
   const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
   const [isAssistantOpen, setIsAssistantOpen] = useState<boolean>(false);
   const [initialAssistantPrompt, setInitialAssistantPrompt] = useState<string | null>(null);
+  const [appNotice, setAppNotice] = useState<string | null>(null);
 
   // Sync theme changes to html data-theme
   useEffect(() => {
@@ -91,11 +93,14 @@ export const App: React.FC = () => {
   };
 
   // Handle Event created from Wizard
-  const handleEventCreated = (newEvent: EventPlan) => {
+  const handleEventCreated = (newEvent: EventPlan, notice?: string) => {
     const updatedEvents = [newEvent, ...events];
     handleUpdateEvents(updatedEvents);
     setActiveEventId(newEvent.id);
     setActiveTab('overview');
+    if (notice) {
+      setAppNotice(notice);
+    }
   };
 
   // Theme Toggler: cycles dark -> light -> contrast -> dark
@@ -145,6 +150,23 @@ export const App: React.FC = () => {
 
       {/* Main Workspace Container */}
       <main id="main-content" className="main-content-layout">
+        {/* Transparent Fallback / Status Banner */}
+        {appNotice && (
+          <div className="app-notice-banner" role="alert">
+            <div className="app-notice-content">
+              <Bot size={18} className="text-brand" />
+              <span>{appNotice}</span>
+            </div>
+            <button 
+              className="btn btn-ghost btn-sm icon-only" 
+              onClick={() => setAppNotice(null)}
+              aria-label="Dismiss notification"
+            >
+              <X size={16} />
+            </button>
+          </div>
+        )}
+
         {/* Header & Section Navigation */}
         <EventHeader 
           event={activeEvent}

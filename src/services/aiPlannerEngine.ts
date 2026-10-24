@@ -14,13 +14,13 @@ export interface GenerateEventParams {
   dietaryOrSpecialNotes?: string;
 }
 
+export const DEFAULT_AI_MODEL = 'gemini-2.5-flash';
+
 export const ALLOWED_MODELS = [
-  'gemini-2.0-flash',
   'gemini-2.5-flash',
-  'gemini-1.5-flash',
-  'gemini-1.5-pro',
-  'gemini-2.0-flash-exp',
-  'gemini-2.0-pro-exp-02-05'
+  'gemini-3.5-flash',
+  'gemini-3.8-flash',
+  'gemini-2.5-pro'
 ];
 
 export interface PlanGenerationResult {
@@ -74,8 +74,8 @@ export const aiPlannerEngine = {
    * Calls Google Gemini to generate a truly dynamic, context-tailored event plan
    */
   async callGeminiForPlan(params: GenerateEventParams, aiSettings: AISettings): Promise<EventPlan | null> {
-    const rawModel = aiSettings.model || 'gemini-2.0-flash';
-    const model = ALLOWED_MODELS.includes(rawModel) ? rawModel : 'gemini-2.0-flash';
+    const rawModel = aiSettings.model || DEFAULT_AI_MODEL;
+    const model = ALLOWED_MODELS.includes(rawModel) ? rawModel : DEFAULT_AI_MODEL;
     const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
 
     const systemPrompt = `You are CelebrAIte, an expert AI Event Planner.
@@ -581,8 +581,8 @@ You must respond ONLY with a raw JSON object (no markdown quotes, no explanation
     currentEvent: EventPlan,
     aiSettings: AISettings
   ): Promise<{ text: string; suggestions?: string[] } | null> {
-    const rawModel = aiSettings.model || 'gemini-1.5-flash';
-    const model = ALLOWED_MODELS.includes(rawModel) ? rawModel : 'gemini-1.5-flash';
+    const rawModel = aiSettings.model || DEFAULT_AI_MODEL;
+    const model = ALLOWED_MODELS.includes(rawModel) ? rawModel : DEFAULT_AI_MODEL;
     
     // Security Fix: API key is passed securely via 'x-goog-api-key' header, never exposed in URL query parameters!
     const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
