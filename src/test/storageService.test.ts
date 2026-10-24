@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { storageService } from '../services/storageService';
+import { validateAndSanitizeImport, validateAndSanitizeAiIdeas } from '../services/schemaValidator';
 import { DEFAULT_AI_MODEL } from '../services/aiPlannerEngine';
 import { INITIAL_EVENTS } from '../data/mockEvents';
 
@@ -123,5 +124,81 @@ describe('storageService - Client Persistence & Schema Validation', () => {
     expect(storageService.loadTheme()).toBe('light');
     storageService.saveTheme('contrast');
     expect(storageService.loadTheme()).toBe('contrast');
+  });
+
+  it('validateAndSanitizeAiIdeas protects against malformed AI responses', () => {
+    const fallback = INITIAL_EVENTS[0].personalizedIdeas;
+
+    // Null or non-object returns fallback directly
+    expect(validateAndSanitizeAiIdeas(null, fallback)).toBe(fallback);
+    expect(validateAndSanitizeAiIdeas('string response', fallback)).toBe(fallback);
+
+    // Empty object preserves all fallback fields
+    const emptyRes = validateAndSanitizeAiIdeas({}, fallback);
+    expect(emptyRes.themeName).toBe(fallback.themeName);
+    expect(emptyRes.colorPalette).toBe(fallback.colorPalette);
+
+    // Invalid color palette (fewer than 3 or bad hex) keeps fallback palette
+    const badColors = validateAndSanitizeAiIdeas(
+      {
+        themeName: 'Midnight Mystery',
+        colorPalette: [{ name: 'Bad Hex', hex: 'not-a-hex' }]
+      },
+      fallback
+    );
+    expect(badColors.themeName).toBe('Midnight Mystery');
+    expect(badColors.colorPalette).toBe(fallback.colorPalette);
+
+    // Valid data replaces fields cleanly
+    const goodRes = validateAndSanitizeAiIdeas(
+      {
+        themeName: 'Gilded Starlight',
+        themeDescription: 'Golden shimmer under midnight skies',
+        colorPalette: [
+          { name: 'Gold', hex: '#ffd700' },
+          { name: 'Black', hex: '#000000' },
+          { name: 'White', hex: '#ffffff' }
+        ],
+        activities: [
+          {
+            name: 'Mystery Game',
+            description: 'Solve the riddle',
+            targetAudience: 'Everyone',
+            duration: '30 mins'
+          }
+        ],
+        cateringHighlights: ['Champagne towers', 'Caviar bites'],
+        playlistVibe: { mood: 'Glamour Jazz', sampleTracks: ['Fly Me to the Moon'] },
+        customSpeeches: [{ title: 'Toast', role: 'Host', text: 'Cheers everyone!' }],
+        decorSuggestions: ['Velvet table runners'],
+        costSavingTips: ['Use fairy lights']
+      },
+      fallback
+    );
+
+    expect(goodRes.themeName).toBe('Gilded Starlight');
+    expect(goodRes.colorPalette.length).toBe(3);
+    expect(goodRes.activities[0].name).toBe('Mystery Game');
+    expect(goodRes.cateringHighlights).toContain('Champagne towers');
+  });
+
+  it('validateAndSanitizeImport handles edge case rejections', () => {
+    // Empty payload
+    expect(validateAndSanitizeImport('').success).toBe(false);
+
+    // Empty events array
+    expect(validateAndSanitizeImport('{"events": []}').success).toBe(false);
+
+    // Null vendor
+    const nullVendorPayload = JSON.stringify({
+      events: [{ id: 'e1', title: 'Test', type: 'wedding', vendors: [null] }]
+    });
+    expect(validateAndSanitizeImport(nullVendorPayload).success).toBe(false);
+
+    // Null guest
+    const nullGuestPayload = JSON.stringify({
+      events: [{ id: 'e1', title: 'Test', type: 'wedding', guests: [null] }]
+    });
+    expect(validateAndSanitizeImport(nullGuestPayload).success).toBe(false);
   });
 });

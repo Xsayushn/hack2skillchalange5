@@ -5,7 +5,8 @@ import {
   PaymentStatus,
   TimelinePhase,
   VendorStatus,
-  RsvpStatus
+  RsvpStatus,
+  PersonalizedIdeas
 } from '../types';
 
 export const ALLOWED_EVENT_TYPES: EventType[] = [
@@ -279,4 +280,186 @@ export function validateAndSanitizeImport(jsonString: string): ValidationResult 
   }
 
   return { success: true, events: validatedEvents };
+}
+
+/**
+ * Deeply validates and sanitizes personalized ideas returned from the live Gemini API.
+ * Ensures every field, object, and array element conforms to the PersonalizedIdeas contract,
+ * safely falling back to heuristic values whenever an item is malformed or invalid.
+ *
+ * @param raw - The unverified parsed JSON from Gemini
+ * @param fallback - The deterministic heuristic PersonalizedIdeas
+ * @returns Fully validated PersonalizedIdeas guaranteed to not crash UI components
+ */
+export function validateAndSanitizeAiIdeas(
+  raw: unknown,
+  fallback: PersonalizedIdeas
+): PersonalizedIdeas {
+  if (!raw || typeof raw !== 'object') {
+    return fallback;
+  }
+
+  const data = raw as Record<string, unknown>;
+
+  const themeName =
+    typeof data.themeName === 'string' && data.themeName.trim()
+      ? data.themeName.trim()
+      : fallback.themeName;
+
+  const themeDescription =
+    typeof data.themeDescription === 'string' && data.themeDescription.trim()
+      ? data.themeDescription.trim()
+      : fallback.themeDescription;
+
+  // Color Palette: array of { name: string, hex: string }
+  let colorPalette = fallback.colorPalette;
+  if (Array.isArray(data.colorPalette)) {
+    const validColors = data.colorPalette
+      .filter((c): c is { name: string; hex: string } => {
+        return (
+          Boolean(c) &&
+          typeof c === 'object' &&
+          typeof (c as { name?: unknown }).name === 'string' &&
+          typeof (c as { hex?: unknown }).hex === 'string' &&
+          /^#[0-9a-fA-F]{3,8}$/.test((c as { hex: string }).hex.trim())
+        );
+      })
+      .map((c) => ({
+        name: (c.name as string).trim(),
+        hex: (c.hex as string).trim()
+      }));
+
+    if (validColors.length >= 3) {
+      colorPalette = validColors;
+    }
+  }
+
+  // Activities: array of { name, description, targetAudience, duration }
+  let activities = fallback.activities;
+  if (Array.isArray(data.activities)) {
+    const validActivities = data.activities
+      .filter(
+        (
+          a
+        ): a is {
+          name: string;
+          description: string;
+          targetAudience?: string;
+          duration?: string;
+        } => {
+          return (
+            Boolean(a) &&
+            typeof a === 'object' &&
+            typeof (a as { name?: unknown }).name === 'string' &&
+            typeof (a as { description?: unknown }).description === 'string'
+          );
+        }
+      )
+      .map((a) => ({
+        name: (a.name as string).trim(),
+        description: (a.description as string).trim(),
+        targetAudience:
+          typeof (a as { targetAudience?: unknown }).targetAudience === 'string'
+            ? (a as { targetAudience: string }).targetAudience.trim()
+            : 'All Guests',
+        duration:
+          typeof (a as { duration?: unknown }).duration === 'string'
+            ? (a as { duration: string }).duration.trim()
+            : 'Ongoing'
+      }));
+
+    if (validActivities.length > 0) {
+      activities = validActivities;
+    }
+  }
+
+  // Catering Highlights: string[]
+  let cateringHighlights = fallback.cateringHighlights;
+  if (Array.isArray(data.cateringHighlights)) {
+    const validStrings = data.cateringHighlights
+      .filter((s): s is string => typeof s === 'string' && s.trim().length > 0)
+      .map((s) => s.trim());
+    if (validStrings.length > 0) {
+      cateringHighlights = validStrings;
+    }
+  }
+
+  // Playlist Vibe: { mood: string, sampleTracks: string[] }
+  let playlistVibe = fallback.playlistVibe;
+  if (data.playlistVibe && typeof data.playlistVibe === 'object') {
+    const pv = data.playlistVibe as Record<string, unknown>;
+    const mood =
+      typeof pv.mood === 'string' && pv.mood.trim() ? pv.mood.trim() : fallback.playlistVibe.mood;
+    const sampleTracks =
+      Array.isArray(pv.sampleTracks) &&
+      pv.sampleTracks.some((t) => typeof t === 'string' && t.trim().length > 0)
+        ? pv.sampleTracks
+            .filter((t): t is string => typeof t === 'string' && t.trim().length > 0)
+            .map((t) => t.trim())
+        : fallback.playlistVibe.sampleTracks;
+    playlistVibe = { mood, sampleTracks };
+  }
+
+  // Custom Speeches: array of { title, role, text }
+  let customSpeeches = fallback.customSpeeches;
+  if (Array.isArray(data.customSpeeches)) {
+    const validSpeeches = data.customSpeeches
+      .filter((s): s is { title?: string; role?: string; text: string } => {
+        return (
+          Boolean(s) &&
+          typeof s === 'object' &&
+          typeof (s as { text?: unknown }).text === 'string' &&
+          (s as { text: string }).text.trim().length > 0
+        );
+      })
+      .map((s) => ({
+        title:
+          typeof (s as { title?: unknown }).title === 'string'
+            ? (s as { title: string }).title.trim()
+            : 'Celebration Toast',
+        role:
+          typeof (s as { role?: unknown }).role === 'string'
+            ? (s as { role: string }).role.trim()
+            : 'Host',
+        text: (s.text as string).trim()
+      }));
+
+    if (validSpeeches.length > 0) {
+      customSpeeches = validSpeeches;
+    }
+  }
+
+  // Decor Suggestions: string[]
+  let decorSuggestions = fallback.decorSuggestions;
+  if (Array.isArray(data.decorSuggestions)) {
+    const validStrings = data.decorSuggestions
+      .filter((s): s is string => typeof s === 'string' && s.trim().length > 0)
+      .map((s) => s.trim());
+    if (validStrings.length > 0) {
+      decorSuggestions = validStrings;
+    }
+  }
+
+  // Cost Saving Tips: string[]
+  let costSavingTips = fallback.costSavingTips;
+  if (Array.isArray(data.costSavingTips)) {
+    const validStrings = data.costSavingTips
+      .filter((s): s is string => typeof s === 'string' && s.trim().length > 0)
+      .map((s) => s.trim());
+    if (validStrings.length > 0) {
+      costSavingTips = validStrings;
+    }
+  }
+
+  return {
+    themeName,
+    themeDescription,
+    colorPalette,
+    activities,
+    cateringHighlights,
+    playlistVibe,
+    customSpeeches,
+    decorSuggestions,
+    costSavingTips
+  };
 }

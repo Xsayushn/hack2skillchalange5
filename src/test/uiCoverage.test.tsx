@@ -13,6 +13,9 @@ import { WizardStepPriorities } from '../components/wizard/WizardStepPriorities'
 import { EventWizardModal } from '../components/EventWizardModal';
 import { SettingsModal } from '../components/SettingsModal';
 import { MasterDossierTab } from '../components/MasterDossierTab';
+import { GuestListTab } from '../components/GuestListTab';
+import { TimelineTab } from '../components/TimelineTab';
+import { IdeasMoodboardTab } from '../components/IdeasMoodboardTab';
 import { exportService } from '../services/exportService';
 import { INITIAL_EVENTS } from '../data/mockEvents';
 
@@ -491,5 +494,182 @@ describe('Additional UI Component Tests & Regression Suite', () => {
     // Cancel closes modal
     fireEvent.click(screen.getByRole('button', { name: /Cancel/i }));
     expect(handleClose).toHaveBeenCalled();
+  });
+
+  it('GuestListTab handles guest creation, RSVP filter, dietary advisory, and deletion', () => {
+    const handleUpdate = vi.fn();
+    const handleAskAI = vi.fn();
+
+    const eventWithGuests = {
+      ...sampleEvent,
+      guests: [
+        {
+          id: 'g-1',
+          name: 'Sarah Jenkins',
+          group: 'VIP Family',
+          rsvpStatus: 'confirmed' as const,
+          dietaryNotes: 'Severe Peanut Allergy',
+          plusOnes: 1,
+          tableOrZone: 'Table 1'
+        },
+        {
+          id: 'g-2',
+          name: 'Michael Chang',
+          group: 'Friends',
+          rsvpStatus: 'pending' as const,
+          dietaryNotes: 'None',
+          plusOnes: 0,
+          tableOrZone: 'Table 2'
+        }
+      ]
+    };
+
+    render(
+      <GuestListTab event={eventWithGuests} onUpdateEvent={handleUpdate} onAskAI={handleAskAI} />
+    );
+
+    // Verify stats
+    expect(screen.getByText('Confirmed Attendees')).toBeInTheDocument();
+    expect(screen.getByText('Dietary Accommodations')).toBeInTheDocument();
+    expect(screen.getByText(/Dietary Inclusivity Alert:/i)).toBeInTheDocument();
+
+    // Trigger AI catering advice
+    const aiAdviceBtn = screen.getByRole('button', { name: /Catering Plating Advice/i });
+    fireEvent.click(aiAdviceBtn);
+    expect(handleAskAI).toHaveBeenCalledWith(expect.stringContaining('Peanut Allergy'));
+
+    // Open Add Guest Modal
+    fireEvent.click(screen.getByRole('button', { name: /Add Guest/i }));
+    expect(
+      screen.getByRole('dialog', { name: /Add Guest to Invitation List/i })
+    ).toBeInTheDocument();
+
+    // Fill form
+    fireEvent.change(screen.getByLabelText(/Guest Full Name/i), {
+      target: { value: 'David Miller' }
+    });
+    fireEvent.change(screen.getByLabelText(/Group \/ Circle/i), {
+      target: { value: 'Work Colleagues' }
+    });
+    fireEvent.change(screen.getByLabelText(/^RSVP Status$/i), { target: { value: 'confirmed' } });
+    fireEvent.change(screen.getByLabelText(/Plus Ones Allowed/i), { target: { value: '2' } });
+    fireEvent.change(screen.getByLabelText(/Dietary Restrictions & Allergies/i), {
+      target: { value: 'Vegan' }
+    });
+    fireEvent.change(screen.getByLabelText(/Table \/ Assigned Zone/i), {
+      target: { value: 'Table 5' }
+    });
+
+    // Submit form
+    fireEvent.click(screen.getByRole('button', { name: /Save Guest/i }));
+    expect(handleUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        guests: expect.arrayContaining([
+          expect.objectContaining({
+            name: 'David Miller',
+            group: 'Work Colleagues',
+            rsvpStatus: 'confirmed',
+            dietaryNotes: 'Vegan',
+            plusOnes: 2
+          })
+        ])
+      })
+    );
+
+    // Test Delete Guest
+    const deleteBtn = screen.getByLabelText(/Delete Sarah Jenkins/i);
+    fireEvent.click(deleteBtn);
+    expect(handleUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        guests: [expect.objectContaining({ id: 'g-2' })]
+      })
+    );
+  });
+
+  it('TimelineTab handles phase filtering, milestone toggling, custom task addition, and iCal download', () => {
+    const handleUpdate = vi.fn();
+    const handleAskAI = vi.fn();
+    const icsSpy = vi.spyOn(exportService, 'downloadIcs').mockImplementation(() => {});
+
+    render(<TimelineTab event={sampleEvent} onUpdateEvent={handleUpdate} onAskAI={handleAskAI} />);
+
+    // Verify filter tabs exist
+    const phaseTabs = screen.getAllByRole('tab');
+    expect(phaseTabs.length).toBeGreaterThan(0);
+
+    // Click "Phase 4: Day-of" tab
+    const dayOfBtn = screen.getByRole('tab', { name: /Phase 4: Day-of/i });
+    fireEvent.click(dayOfBtn);
+
+    // Toggle milestone completion
+    const toggleButtons = screen.getAllByRole('button', { name: /Toggle completion for/i });
+    fireEvent.click(toggleButtons[0]);
+    expect(handleUpdate).toHaveBeenCalled();
+
+    // Trigger iCal download
+    const exportIcsBtn = screen.getByRole('button', { name: /Sync to Calendar/i });
+    fireEvent.click(exportIcsBtn);
+    expect(icsSpy).toHaveBeenCalledWith(sampleEvent);
+
+    // Open Add Milestone modal
+    const addMilestoneBtn = screen.getByRole('button', { name: /Add Milestone/i });
+    fireEvent.click(addMilestoneBtn);
+    expect(screen.getByRole('dialog', { name: /Schedule New Milestone/i })).toBeInTheDocument();
+
+    // Fill form
+    fireEvent.change(screen.getByLabelText(/Milestone Title/i), {
+      target: { value: 'Sound Check' }
+    });
+    fireEvent.change(screen.getByLabelText(/^Phase$/i), { target: { value: 'day_of' } });
+    fireEvent.change(screen.getByLabelText(/Target Time \/ Date Slot/i), {
+      target: { value: '11:00 AM' }
+    });
+    fireEvent.change(screen.getByLabelText(/Description & Instructions/i), {
+      target: { value: 'Test mics and speakers' }
+    });
+    fireEvent.change(screen.getByLabelText(/Priority/i), { target: { value: 'high' } });
+
+    // Submit
+    fireEvent.click(screen.getByRole('button', { name: /Save Milestone/i }));
+    expect(handleUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        timelineItems: expect.arrayContaining([
+          expect.objectContaining({
+            title: 'Sound Check',
+            phase: 'day_of',
+            targetDateOrTime: '11:00 AM'
+          })
+        ])
+      })
+    );
+  });
+
+  it('IdeasMoodboardTab renders creative concept, copies colors and speeches, and triggers AI assistant', () => {
+    const handleAskAI = vi.fn();
+    const clipboardSpy = vi.spyOn(navigator.clipboard, 'writeText').mockResolvedValue(undefined);
+
+    render(<IdeasMoodboardTab event={sampleEvent} onAskAI={handleAskAI} />);
+
+    // Banner and theme
+    expect(screen.getByText(sampleEvent.personalizedIdeas.themeName)).toBeInTheDocument();
+    expect(screen.getByText(sampleEvent.personalizedIdeas.themeDescription)).toBeInTheDocument();
+
+    // Click color swatch to copy
+    const firstColor = sampleEvent.personalizedIdeas.colorPalette[0];
+    const swatch = screen.getByLabelText(new RegExp(`Copy color ${firstColor.name}`, 'i'));
+    fireEvent.click(swatch);
+    expect(clipboardSpy).toHaveBeenCalledWith(firstColor.hex);
+
+    // Copy custom speech
+    const copySpeechBtn = screen.getAllByRole('button', { name: /Copy speech text/i })[0];
+    fireEvent.click(copySpeechBtn);
+    expect(clipboardSpy).toHaveBeenCalled();
+
+    // Click brainstorm ideas
+    const brainstormBtn = screen.getByRole('button', { name: /Regenerate Theme Concepts/i });
+    fireEvent.click(brainstormBtn);
+    expect(handleAskAI).toHaveBeenCalledWith(
+      expect.stringContaining('theme concepts and color palettes')
+    );
   });
 });

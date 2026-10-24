@@ -1,11 +1,9 @@
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { aiPlannerEngine, DEFAULT_AI_MODEL } from '../services/aiPlannerEngine';
-import {
-  generateBudgetBreakdown,
-  generatePhasedTimeline,
-  generateVendors,
-  generateCreativeIdeas
-} from '../services/heuristicGenerators';
+import { generateBudgetBreakdown } from '../services/generators/budgetGenerator';
+import { generatePhasedTimeline } from '../services/generators/timelineGenerator';
+import { generateVendors } from '../services/generators/vendorGenerator';
+import { generateCreativeIdeas } from '../services/generators/ideasGenerator';
 import { autonomousAgentRespond, calculateDaysRemaining } from '../services/autonomousAssistant';
 import { INITIAL_EVENTS } from '../data/mockEvents';
 
@@ -337,5 +335,155 @@ describe('aiPlannerEngine - Live Gemini API Path & Security', () => {
         useOfflineFallback: false
       })
     ).rejects.toThrow('Gemini API 500 internal server error');
+  });
+
+  it('handles truncated or invalid JSON from Gemini by falling back to heuristics', async () => {
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({
+        candidates: [
+          {
+            content: {
+              parts: [{ text: '{"themeName": "Truncated json without closing' }]
+            }
+          }
+        ]
+      })
+    });
+
+    const params = {
+      title: 'Truncated Gala',
+      type: 'wedding' as const,
+      date: '2026-10-25',
+      targetGuests: 50,
+      location: 'Hall',
+      vibe: 'Formal',
+      totalBudget: 10000,
+      currency: 'USD',
+      currencySymbol: '$'
+    };
+
+    const result = await aiPlannerEngine.generateEventPlanWithMeta(params, {
+      apiKey: 'AIzaSyFakeKeyForTesting12345678',
+      model: DEFAULT_AI_MODEL,
+      useOfflineFallback: true
+    });
+
+    expect(result.source).toBe('autonomous-heuristics');
+    expect(result.errorNotice).toBeDefined();
+    expect(result.plan.personalizedIdeas.themeName).toBeDefined();
+  });
+
+  it('handles 429 or 404 HTTP errors from Gemini gracefully', async () => {
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 429,
+      statusText: 'Too Many Requests'
+    });
+
+    const params = {
+      title: 'Rate Limited Gala',
+      type: 'birthday' as const,
+      date: '2026-10-25',
+      targetGuests: 30,
+      location: 'Park',
+      vibe: 'Fun',
+      totalBudget: 2000,
+      currency: 'USD',
+      currencySymbol: '$'
+    };
+
+    const result = await aiPlannerEngine.generateEventPlanWithMeta(params, {
+      apiKey: 'AIzaSyFakeKeyForTesting12345678',
+      model: DEFAULT_AI_MODEL,
+      useOfflineFallback: true
+    });
+
+    expect(result.source).toBe('autonomous-heuristics');
+    expect(result.errorNotice).toContain('429');
+  });
+
+  it('handles request abort/timeout gracefully', async () => {
+    global.fetch = vi
+      .fn()
+      .mockRejectedValue(new DOMException('The user aborted a request.', 'AbortError'));
+
+    const params = {
+      title: 'Timeout Gala',
+      type: 'community' as const,
+      date: '2026-10-25',
+      targetGuests: 150,
+      location: 'Square',
+      vibe: 'Festive',
+      totalBudget: 5000,
+      currency: 'USD',
+      currencySymbol: '$'
+    };
+
+    const result = await aiPlannerEngine.generateEventPlanWithMeta(params, {
+      apiKey: 'AIzaSyFakeKeyForTesting12345678',
+      model: DEFAULT_AI_MODEL,
+      useOfflineFallback: true
+    });
+
+    expect(result.source).toBe('autonomous-heuristics');
+    expect(result.errorNotice).toContain('AbortError');
+  });
+
+  it('calls live Gemini chat assistant with 4096 tokens, parses suggestions and handles finishReason MAX_TOKENS', async () => {
+    let capturedBody: Record<string, unknown> = {};
+
+    global.fetch = vi.fn().mockImplementation(async (_url: string, init?: RequestInit) => {
+      capturedBody = init?.body ? JSON.parse(init.body as string) : {};
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({
+          candidates: [
+            {
+              content: {
+                parts: [
+                  {
+                    text: 'Here is your custom timeline advice!\n\nSUGGESTIONS:\n- Review contracts\n- Ask about backup power'
+                  }
+                ]
+              },
+              finishReason: 'MAX_TOKENS'
+            }
+          ]
+        })
+      };
+    });
+
+    const sampleEvent = INITIAL_EVENTS[0];
+    const res = await aiPlannerEngine.askAssistant('How should I schedule vendors?', sampleEvent, {
+      apiKey: 'AIzaSyFakeKeyForTesting12345678',
+      model: DEFAULT_AI_MODEL,
+      useOfflineFallback: true
+    });
+
+    expect(res.text).toContain('Here is your custom timeline advice!');
+    expect(res.text).toContain('maximum output limit');
+    expect(res.suggestions).toEqual(['Review contracts', 'Ask about backup power']);
+    expect((capturedBody.generationConfig as Record<string, unknown>).maxOutputTokens).toBe(4096);
+  });
+
+  it('generates plan via generateEventPlanAsync directly', async () => {
+    const params = {
+      title: 'Async Gala',
+      type: 'festival' as const,
+      date: '2026-10-25',
+      targetGuests: 200,
+      location: 'Park',
+      vibe: 'Festive',
+      totalBudget: 8000,
+      currency: 'USD',
+      currencySymbol: '$'
+    };
+
+    const plan = await aiPlannerEngine.generateEventPlanAsync(params);
+    expect(plan.title).toBe('Async Gala');
+    expect(plan.budgetItems.length).toBeGreaterThan(0);
   });
 });

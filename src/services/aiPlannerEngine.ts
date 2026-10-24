@@ -8,13 +8,11 @@ import {
   GenerateEventParams,
   PlanGenerationResult
 } from '../types';
-import {
-  capitalize,
-  generateBudgetBreakdown,
-  generatePhasedTimeline,
-  generateVendors,
-  generateCreativeIdeas
-} from './heuristicGenerators';
+import { capitalize, generateBudgetBreakdown } from './generators/budgetGenerator';
+import { generatePhasedTimeline } from './generators/timelineGenerator';
+import { generateVendors } from './generators/vendorGenerator';
+import { generateCreativeIdeas } from './generators/ideasGenerator';
+import { validateAndSanitizeAiIdeas } from './schemaValidator';
 import { calculateDaysRemaining, autonomousAgentRespond } from './autonomousAssistant';
 
 export type { GenerateEventParams, PlanGenerationResult };
@@ -150,35 +148,11 @@ You must respond ONLY with a raw JSON object (no markdown quotes, no explanation
     const parsed = JSON.parse(cleaned);
 
     const basePlan = this.generateEventPlan(params);
+    const sanitizedIdeas = validateAndSanitizeAiIdeas(parsed, basePlan.personalizedIdeas);
+
     return {
       ...basePlan,
-      personalizedIdeas: {
-        themeName: parsed.themeName || basePlan.personalizedIdeas.themeName,
-        themeDescription: parsed.themeDescription || basePlan.personalizedIdeas.themeDescription,
-        colorPalette:
-          Array.isArray(parsed.colorPalette) && parsed.colorPalette.length >= 3
-            ? parsed.colorPalette
-            : basePlan.personalizedIdeas.colorPalette,
-        activities:
-          Array.isArray(parsed.activities) && parsed.activities.length
-            ? parsed.activities
-            : basePlan.personalizedIdeas.activities,
-        cateringHighlights:
-          Array.isArray(parsed.cateringHighlights) && parsed.cateringHighlights.length
-            ? parsed.cateringHighlights
-            : basePlan.personalizedIdeas.cateringHighlights,
-        playlistVibe: parsed.playlistVibe || basePlan.personalizedIdeas.playlistVibe,
-        customSpeeches:
-          Array.isArray(parsed.customSpeeches) && parsed.customSpeeches.length
-            ? parsed.customSpeeches
-            : basePlan.personalizedIdeas.customSpeeches,
-        decorSuggestions: Array.isArray(parsed.decorSuggestions)
-          ? parsed.decorSuggestions
-          : basePlan.personalizedIdeas.decorSuggestions,
-        costSavingTips: Array.isArray(parsed.costSavingTips)
-          ? parsed.costSavingTips
-          : basePlan.personalizedIdeas.costSavingTips
-      },
+      personalizedIdeas: sanitizedIdeas,
       notes: `Generated dynamically via Google Gemini (${model}). Tailored to "${params.vibe}".`
     };
   },
@@ -309,7 +283,7 @@ Provide specific, practical, highly creative, and mathematically sound suggestio
       ],
       generationConfig: {
         temperature: 0.7,
-        maxOutputTokens: 1000
+        maxOutputTokens: 4096
       }
     };
 
@@ -336,7 +310,8 @@ Provide specific, practical, highly creative, and mathematically sound suggestio
     }
 
     const data = await res.json();
-    const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+    const candidate = data?.candidates?.[0];
+    const rawText = candidate?.content?.parts?.[0]?.text;
     if (!rawText) return null;
 
     let text = rawText;
@@ -349,6 +324,11 @@ Provide specific, practical, highly creative, and mathematically sound suggestio
         .split('\n')
         .map((s: string) => s.replace(/^[-*•\d.]\s*/, '').trim())
         .filter((s: string) => s.length > 3 && s.length < 80);
+    }
+
+    if (candidate?.finishReason === 'MAX_TOKENS') {
+      text +=
+        '\n\n*(Note: Response reached maximum output limit. Feel free to ask a follow-up to continue!)*';
     }
 
     return { text, suggestions };
