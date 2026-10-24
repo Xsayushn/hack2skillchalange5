@@ -4,21 +4,19 @@ import {
   ArrowRight, 
   ArrowLeft, 
   CheckCircle2, 
-  DollarSign, 
-  Calendar, 
-  Users, 
-  MapPin, 
-  PartyPopper,
-  X
+  X,
+  Bot
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
-import { EventPlan, EventType } from '../types';
+import { EventPlan, EventType, AISettings } from '../types';
 import { aiPlannerEngine, GenerateEventParams } from '../services/aiPlannerEngine';
+import { useModalA11y } from '../hooks/useModalA11y';
 
 interface EventWizardModalProps {
   isOpen: boolean;
   onClose: () => void;
   onEventCreated: (newEvent: EventPlan) => void;
+  aiSettings?: AISettings;
 }
 
 const EVENT_ARCHETYPES: {
@@ -75,7 +73,8 @@ const CURRENCIES = [
 export const EventWizardModal: React.FC<EventWizardModalProps> = ({
   isOpen,
   onClose,
-  onEventCreated
+  onEventCreated,
+  aiSettings
 }) => {
   const [step, setStep] = useState<number>(1);
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
@@ -96,6 +95,9 @@ export const EventWizardModal: React.FC<EventWizardModalProps> = ({
   const [currencySymbol, setCurrencySymbol] = useState<string>('$');
   const [priorityFocus, setPriorityFocus] = useState<'balanced' | 'catering' | 'entertainment' | 'decor' | 'photo'>('balanced');
 
+  // Accessibility: Focus trap & Escape-to-close
+  const modalRef = useModalA11y<HTMLDivElement>({ isOpen, onClose });
+
   if (!isOpen) return null;
 
   const handleSelectArchetype = (arch: typeof EVENT_ARCHETYPES[0]) => {
@@ -115,47 +117,59 @@ export const EventWizardModal: React.FC<EventWizardModalProps> = ({
     }
   };
 
-  const handleGenerate = () => {
+  const handleGenerate = async () => {
     setIsGenerating(true);
 
-    // Simulate smart AI synthesis step
-    setTimeout(() => {
-      const params: GenerateEventParams = {
-        title: title || `${eventType.toUpperCase()} Celebration`,
-        type: eventType,
-        date,
-        targetGuests,
-        location,
-        vibe,
-        totalBudget,
-        currency,
-        currencySymbol,
-        priorityFocus
-      };
+    const params: GenerateEventParams = {
+      title: title || `${eventType.toUpperCase()} Celebration`,
+      type: eventType,
+      date,
+      targetGuests,
+      location,
+      vibe,
+      totalBudget,
+      currency,
+      currencySymbol,
+      priorityFocus
+    };
 
-      const newPlan = aiPlannerEngine.generateEventPlan(params);
+    try {
+      const newPlan = await aiPlannerEngine.generateEventPlanAsync(params, aiSettings);
 
-      // Trigger Confetti effect
-      try {
-        confetti({
-          particleCount: 80,
-          spread: 70,
-          origin: { y: 0.6 }
-        });
-      } catch {
-        // Safe fallback if canvas not available
+      // Trigger Confetti effect (safely handles prefers-reduced-motion)
+      const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      if (!prefersReducedMotion) {
+        try {
+          confetti({
+            particleCount: 80,
+            spread: 70,
+            origin: { y: 0.6 }
+          });
+        } catch {
+          // Safe fallback
+        }
       }
 
-      setIsGenerating(false);
       onEventCreated(newPlan);
       onClose();
       setStep(1);
-    }, 900);
+    } catch (err) {
+      console.error('Plan generation failed', err);
+      // Fallback to offline heuristic
+      const fallbackPlan = aiPlannerEngine.generateEventPlan(params);
+      onEventCreated(fallbackPlan);
+      onClose();
+      setStep(1);
+    } finally {
+      setIsGenerating(false);
+    }
   };
+
+  const hasLiveKey = Boolean(aiSettings?.apiKey && aiSettings.apiKey.trim().length > 5);
 
   return (
     <div className="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="wizard-modal-title">
-      <div className="wizard-modal-content glass-panel">
+      <div className="wizard-modal-content glass-panel" ref={modalRef} tabIndex={-1}>
         {/* Header */}
         <div className="wizard-header">
           <div className="wizard-title-group">
@@ -164,7 +178,13 @@ export const EventWizardModal: React.FC<EventWizardModalProps> = ({
             </div>
             <div>
               <h2 id="wizard-modal-title">Autonomous GenAI Event Architect</h2>
-              <p className="wizard-sub">Step {step} of 3 • Custom plan generation tailored to your exact context</p>
+              <div className="wizard-sub-row">
+                <span className="wizard-sub">Step {step} of 3</span>
+                <span className="wizard-engine-badge">
+                  <Bot size={13} className={hasLiveKey ? 'text-brand' : 'text-emerald'} />
+                  <span>{hasLiveKey ? `Live Gemini (${aiSettings?.model})` : 'Autonomous AI Heuristic (Offline Ready)'}</span>
+                </span>
+              </div>
             </div>
           </div>
           <button 
@@ -367,7 +387,7 @@ export const EventWizardModal: React.FC<EventWizardModalProps> = ({
               disabled={isGenerating}
             >
               <Sparkles size={18} className={isGenerating ? 'spin-icon' : ''} />
-              <span>{isGenerating ? 'Synthesizing Event Plan...' : 'Generate AI Master Plan'}</span>
+              <span>{isGenerating ? 'Synthesizing Event Plan...' : hasLiveKey ? 'Generate with Live Gemini' : 'Generate AI Master Plan'}</span>
             </button>
           )}
         </div>

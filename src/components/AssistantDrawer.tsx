@@ -4,15 +4,13 @@ import {
   Send, 
   X, 
   Bot, 
-  User, 
-  Lightbulb, 
   ShieldCheck, 
-  RefreshCw,
-  Copy,
-  Check
+  Copy, 
+  Check 
 } from 'lucide-react';
 import { EventPlan, ChatMessage, AISettings } from '../types';
 import { aiPlannerEngine } from '../services/aiPlannerEngine';
+import { useModalA11y } from '../hooks/useModalA11y';
 
 interface AssistantDrawerProps {
   isOpen: boolean;
@@ -47,6 +45,9 @@ export const AssistantDrawer: React.FC<AssistantDrawerProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Focus trap & Escape handling for accessibility
+  const drawerRef = useModalA11y<HTMLElement>({ isOpen, onClose });
 
   // Auto scroll to bottom
   useEffect(() => {
@@ -86,7 +87,7 @@ export const AssistantDrawer: React.FC<AssistantDrawerProps> = ({
       const errorMsg: ChatMessage = {
         id: `err-${Date.now()}`,
         sender: 'assistant',
-        text: `I encountered an unexpected hitch: ${err?.message || 'Network delay'}. You can check your API key in Settings or continue using built-in offline intelligence.`,
+        text: `Notice: ${err?.message || 'Connection glitch'}. You can configure your Gemini API key in Settings or continue using the autonomous offline engine.`,
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         suggestions: ['How can I save budget?', 'Draft a run of show']
       };
@@ -102,13 +103,58 @@ export const AssistantDrawer: React.FC<AssistantDrawerProps> = ({
     setTimeout(() => setCopiedId(null), 2000);
   };
 
+  const renderFormattedMarkdown = (text: string) => {
+    const paragraphs = text.split('\n\n');
+    return paragraphs.map((block, pIdx) => {
+      // Header 3/4
+      if (block.startsWith('### ')) {
+        return <h4 key={pIdx} className="msg-h4">{block.replace('### ', '')}</h4>;
+      }
+      if (block.startsWith('> ')) {
+        return (
+          <blockquote key={pIdx} className="msg-quote">
+            {block.replace('> ', '')}
+          </blockquote>
+        );
+      }
+      // List
+      if (block.includes('\n- ') || block.startsWith('- ') || block.includes('\n1. ') || /^\d+\.\s/.test(block)) {
+        const lines = block.split('\n');
+        return (
+          <div key={pIdx} className="msg-list-block">
+            {lines.map((line, lIdx) => {
+              if (line.startsWith('- ') || line.startsWith('* ')) {
+                return (
+                  <div key={lIdx} className="msg-list-item">
+                    <span className="msg-bullet">•</span>
+                    <span>{line.replace(/^[-*]\s*/, '')}</span>
+                  </div>
+                );
+              }
+              if (/^\d+\.\s*/.test(line)) {
+                return (
+                  <div key={lIdx} className="msg-list-item">
+                    <span className="msg-num">{line.match(/^\d+\./)?.[0]}</span>
+                    <span>{line.replace(/^\d+\.\s*/, '')}</span>
+                  </div>
+                );
+              }
+              return <p key={lIdx}>{line}</p>;
+            })}
+          </div>
+        );
+      }
+      return <p key={pIdx}>{block}</p>;
+    });
+  };
+
   if (!isOpen) return null;
 
   const isUsingLiveGemini = !!(aiSettings.apiKey && aiSettings.apiKey.trim().length > 5);
 
   return (
     <div className="assistant-drawer-overlay no-print" role="dialog" aria-modal="true" aria-label="CelebrAIte AI Co-Pilot">
-      <aside className="assistant-drawer glass-panel">
+      <aside className="assistant-drawer glass-panel" ref={drawerRef} tabIndex={-1}>
         {/* Drawer Header */}
         <header className="assistant-header">
           <div className="assistant-header-left">
@@ -177,19 +223,7 @@ export const AssistantDrawer: React.FC<AssistantDrawerProps> = ({
                   </div>
 
                   <div className="message-body-text">
-                    {msg.text.split('\n\n').map((paragraph, pIdx) => {
-                      if (paragraph.startsWith('### ')) {
-                        return <h4 key={pIdx} className="msg-h4">{paragraph.replace('### ', '')}</h4>;
-                      }
-                      if (paragraph.startsWith('> ')) {
-                        return (
-                          <blockquote key={pIdx} className="msg-quote">
-                            {paragraph.replace('> ', '')}
-                          </blockquote>
-                        );
-                      }
-                      return <p key={pIdx}>{paragraph}</p>;
-                    })}
+                    {renderFormattedMarkdown(msg.text)}
                   </div>
 
                   {/* Suggestion Quick Chips */}

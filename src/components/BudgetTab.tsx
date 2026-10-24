@@ -12,6 +12,7 @@ import {
   HelpCircle
 } from 'lucide-react';
 import { EventPlan, BudgetItem, BudgetCategory, PaymentStatus } from '../types';
+import { useModalA11y } from '../hooks/useModalA11y';
 
 interface BudgetTabProps {
   event: EventPlan;
@@ -62,6 +63,7 @@ export const BudgetTab: React.FC<BudgetTabProps> = ({
   const [filterCategory, setFilterCategory] = useState<string>('all');
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [showAddModal, setShowAddModal] = useState<boolean>(false);
+  const addModalRef = useModalA11y<HTMLDivElement>({ isOpen: showAddModal, onClose: () => setShowAddModal(false) });
 
   // New item form state
   const [newItemName, setNewItemName] = useState('');
@@ -453,7 +455,7 @@ export const BudgetTab: React.FC<BudgetTabProps> = ({
       {/* Add Item Modal */}
       {showAddModal && (
         <div className="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="add-expense-title">
-          <div className="modal-content glass-panel">
+          <div className="modal-content glass-panel" ref={addModalRef} tabIndex={-1}>
             <div className="modal-header">
               <h3 id="add-expense-title">Add Budget Expense</h3>
               <button 

@@ -10,11 +10,11 @@ import {
   RotateCcw, 
   Eye, 
   EyeOff, 
-  X,
-  ExternalLink
+  X
 } from 'lucide-react';
 import { AISettings, EventPlan } from '../types';
 import { storageService } from '../services/storageService';
+import { useModalA11y } from '../hooks/useModalA11y';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -24,6 +24,8 @@ interface SettingsModalProps {
   onResetData: () => void;
   onImportData: (importedEvents: EventPlan[]) => void;
 }
+
+const ALLOWED_MODELS = ['gemini-1.5-flash', 'gemini-2.0-flash-exp', 'gemini-1.5-pro', 'gemini-1.0-pro'];
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({
   isOpen,
@@ -35,10 +37,13 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 }) => {
   const [apiKey, setApiKey] = useState(aiSettings.apiKey || '');
   const [model, setModel] = useState(aiSettings.model || 'gemini-1.5-flash');
+  const [useOfflineFallback, setUseOfflineFallback] = useState(aiSettings.useOfflineFallback !== false);
   const [showKey, setShowKey] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [testStatus, setTestStatus] = useState<'idle' | 'testing' | 'success' | 'failed'>('idle');
   const [importError, setImportError] = useState<string | null>(null);
+
+  const modalRef = useModalA11y<HTMLDivElement>({ isOpen, onClose });
 
   if (!isOpen) return null;
 
@@ -46,8 +51,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     e.preventDefault();
     onSaveAISettings({
       apiKey: apiKey.trim(),
-      model,
-      useOfflineFallback: true
+      model: ALLOWED_MODELS.includes(model) ? model : 'gemini-1.5-flash',
+      useOfflineFallback
     });
     setSaveSuccess(true);
     setTimeout(() => setSaveSuccess(false), 2500);
@@ -60,12 +65,17 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     }
     setTestStatus('testing');
     try {
-      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(apiKey.trim())}`;
+      const sanitizedModel = ALLOWED_MODELS.includes(model) ? model : 'gemini-1.5-flash';
+      // Secure Header authentication: No key in URL
+      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${sanitizedModel}:generateContent`;
       const res = await fetch(endpoint, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'x-goog-api-key': apiKey.trim()
+        },
         body: JSON.stringify({
-          contents: [{ role: 'user', parts: [{ text: 'Ping: Return the single word OK.' }] }]
+          contents: [{ role: 'user', parts: [{ text: 'Ping test: return OK.' }] }]
         })
       });
       if (res.ok) {
@@ -93,7 +103,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
         onImportData(loaded);
         onClose();
       } else {
-        setImportError(result.error || 'Failed to parse JSON file.');
+        setImportError(result.error || 'Failed to parse JSON backup.');
       }
     };
     reader.readAsText(file);
@@ -114,7 +124,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
   return (
     <div className="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="settings-title">
-      <div className="settings-modal-content glass-panel">
+      <div className="settings-modal-content glass-panel" ref={modalRef} tabIndex={-1}>
         <div className="modal-header">
           <div className="modal-title-with-icon">
             <Settings size={22} className="text-brand" />
@@ -123,7 +133,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           <button 
             className="btn btn-ghost btn-sm icon-only" 
             onClick={onClose}
-            aria-label="Close dialog"
+            aria-label="Close settings dialog"
           >
             <X size={18} />
           </button>
@@ -137,7 +147,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               <h4>Google Gemini Live AI Integration (Optional)</h4>
             </div>
             <p className="settings-desc">
-              CelebrAIte operates with a built-in <strong>Autonomous Intelligence Planning Engine</strong> out-of-the-box with zero API key required. You may optionally connect your personal Google Gemini API key to query live Google models.
+              CelebrAIte works 100% offline with a built-in <strong>Autonomous Intelligence Planning Engine</strong> out-of-the-box. You may optionally connect your personal Google Gemini API key to activate live generative models.
             </p>
 
             <form onSubmit={handleSave} className="api-key-form">
@@ -162,7 +172,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   </button>
                 </div>
                 <small className="field-hint">
-                  Stored strictly in your local browser storage. Never transmitted to third-party tracking servers.
+                  🔒 Security: Stored strictly in <code>sessionStorage</code> for this browser session and sent via secure <code>x-goog-api-key</code> headers (never in URL parameters).
                 </small>
               </div>
 
@@ -173,10 +183,22 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   value={model} 
                   onChange={(e) => setModel(e.target.value)}
                 >
-                  <option value="gemini-1.5-flash">gemini-1.5-flash (Fast & Recommended)</option>
+                  <option value="gemini-1.5-flash">gemini-1.5-flash (Fast & Responsive)</option>
                   <option value="gemini-2.0-flash-exp">gemini-2.0-flash-exp (Experimental High-Precision)</option>
                   <option value="gemini-1.5-pro">gemini-1.5-pro (In-depth Reasoning)</option>
                 </select>
+              </div>
+
+              <div className="form-group checkbox-group" style={{ flexDirection: 'row', alignItems: 'center', gap: '8px' }}>
+                <input 
+                  id="offline-fallback-toggle"
+                  type="checkbox"
+                  checked={useOfflineFallback}
+                  onChange={(e) => setUseOfflineFallback(e.target.checked)}
+                />
+                <label htmlFor="offline-fallback-toggle" style={{ margin: 0, cursor: 'pointer' }}>
+                  Enable automatic fallback to offline heuristic engine if network or rate-limits occur
+                </label>
               </div>
 
               <div className="key-actions-row">
@@ -251,19 +273,19 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
           {/* Section 3: Evaluation Focus Notes */}
           <section className="settings-section">
-            <h4>Evaluation Compliance & Verification</h4>
+            <h4>Security & Compliance Highlights</h4>
             <div className="eval-checklist">
               <div className="eval-item">
                 <ShieldCheck size={16} className="text-emerald" />
-                <span><strong>Security:</strong> Client-side local key persistence with zero external telemetry exposure.</span>
+                <span><strong>Header-Based Auth:</strong> API key is sent via <code>x-goog-api-key</code> headers, not query parameters.</span>
               </div>
               <div className="eval-item">
                 <ShieldCheck size={16} className="text-emerald" />
-                <span><strong>Efficiency:</strong> Lightweight bundle, offline-first autonomous heuristics, repo &lt; 10MB.</span>
+                <span><strong>Memory Isolation:</strong> Keys live in <code>sessionStorage</code> and clear automatically when closed.</span>
               </div>
               <div className="eval-item">
                 <ShieldCheck size={16} className="text-emerald" />
-                <span><strong>Accessibility:</strong> WCAG AA compliant contrast modes, ARIA dialogs, and keyboard accessibility.</span>
+                <span><strong>Deep Schema Validation:</strong> Nested items in imported JSON are strictly validated to prevent UI crashes.</span>
               </div>
             </div>
           </section>

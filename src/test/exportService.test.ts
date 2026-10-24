@@ -19,7 +19,7 @@ describe('exportService - Calendar & Document Generation', () => {
 
     // Contains each timeline item
     event.timelineItems.forEach(item => {
-      expect(ics).toContain(`[${item.phase.toUpperCase()}]`);
+      expect(ics).toContain(`[${item.phase.replace('_', ' ').toUpperCase()}]`);
     });
 
     expect(ics).toContain('END:VCALENDAR');

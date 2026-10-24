@@ -14,9 +14,104 @@ export interface GenerateEventParams {
   dietaryOrSpecialNotes?: string;
 }
 
+const ALLOWED_MODELS = ['gemini-1.5-flash', 'gemini-2.0-flash-exp', 'gemini-1.5-pro', 'gemini-1.0-pro'];
+
 export const aiPlannerEngine = {
   /**
-   * Generates a complete, tailored EventPlan using intelligent heuristics and domain modeling
+   * Generates a complete tailored EventPlan.
+   * If an active Gemini API key is configured, it dynamically invokes the Gemini model to synthesize
+   * bespoke event elements; otherwise, it seamlessly uses the Autonomous Context-Aware Heuristics engine.
+   */
+  async generateEventPlanAsync(params: GenerateEventParams, aiSettings?: AISettings): Promise<EventPlan> {
+    if (aiSettings?.apiKey && aiSettings.apiKey.trim().length > 5) {
+      try {
+        const livePlan = await this.callGeminiForPlan(params, aiSettings);
+        if (livePlan) return livePlan;
+      } catch (err) {
+        console.warn('Live Gemini plan generation failed, falling back to autonomous engine', err);
+        if (aiSettings?.useOfflineFallback === false) {
+          throw err;
+        }
+      }
+    }
+    return this.generateEventPlan(params);
+  },
+
+  /**
+   * Calls Google Gemini to generate a truly dynamic, context-tailored event plan
+   */
+  async callGeminiForPlan(params: GenerateEventParams, aiSettings: AISettings): Promise<EventPlan | null> {
+    const rawModel = aiSettings.model || 'gemini-1.5-flash';
+    const model = ALLOWED_MODELS.includes(rawModel) ? rawModel : 'gemini-1.5-flash';
+    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
+
+    const systemPrompt = `You are CelebrAIte, an expert AI Event Planner.
+Generate a tailored JSON event plan for:
+- Title: "${params.title}"
+- Type: ${params.type}
+- Target Date: ${params.date}
+- Location: "${params.location}"
+- Vibe / Theme requested: "${params.vibe}"
+- Target Guests: ${params.targetGuests}
+- Budget: ${params.currencySymbol}${params.totalBudget} ${params.currency}
+- Focus: ${params.priorityFocus || 'balanced'}
+
+You must respond ONLY with a raw JSON object (no markdown quotes, no explanation):
+{
+  "themeName": string,
+  "themeDescription": string,
+  "colorPalette": [{"name": string, "hex": string}],
+  "activities": [{"name": string, "description": string, "targetAudience": string, "duration": string}],
+  "cateringHighlights": [string],
+  "playlistVibe": {"mood": string, "sampleTracks": [string]},
+  "customSpeeches": [{"title": string, "role": string, "text": string}],
+  "costSavingTips": [string],
+  "decorSuggestions": [string]
+}`;
+
+    const body = {
+      contents: [{ role: 'user', parts: [{ text: systemPrompt }] }],
+      generationConfig: { temperature: 0.8, maxOutputTokens: 1400 }
+    };
+
+    const res = await fetch(endpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-goog-api-key': aiSettings.apiKey.trim()
+      },
+      body: JSON.stringify(body)
+    });
+
+    if (!res.ok) throw new Error(`Gemini API returned status ${res.status}`);
+
+    const data = await res.json();
+    const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!rawText) return null;
+
+    const cleaned = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
+    const parsed = JSON.parse(cleaned);
+
+    const basePlan = this.generateEventPlan(params);
+    return {
+      ...basePlan,
+      personalizedIdeas: {
+        themeName: parsed.themeName || basePlan.personalizedIdeas.themeName,
+        themeDescription: parsed.themeDescription || basePlan.personalizedIdeas.themeDescription,
+        colorPalette: Array.isArray(parsed.colorPalette) && parsed.colorPalette.length >= 3 ? parsed.colorPalette : basePlan.personalizedIdeas.colorPalette,
+        activities: Array.isArray(parsed.activities) && parsed.activities.length ? parsed.activities : basePlan.personalizedIdeas.activities,
+        cateringHighlights: Array.isArray(parsed.cateringHighlights) && parsed.cateringHighlights.length ? parsed.cateringHighlights : basePlan.personalizedIdeas.cateringHighlights,
+        playlistVibe: parsed.playlistVibe || basePlan.personalizedIdeas.playlistVibe,
+        customSpeeches: Array.isArray(parsed.customSpeeches) && parsed.customSpeeches.length ? parsed.customSpeeches : basePlan.personalizedIdeas.customSpeeches,
+        decorSuggestions: Array.isArray(parsed.decorSuggestions) ? parsed.decorSuggestions : basePlan.personalizedIdeas.decorSuggestions,
+        costSavingTips: Array.isArray(parsed.costSavingTips) ? parsed.costSavingTips : basePlan.personalizedIdeas.costSavingTips
+      },
+      notes: `Generated dynamically via Google Gemini (${model}). Tailored to "${params.vibe}".`
+    };
+  },
+
+  /**
+   * Generates a complete tailored EventPlan using intelligent heuristics and domain modeling
    */
   generateEventPlan(params: GenerateEventParams): EventPlan {
     const id = `event-${params.type}-${Date.now().toString(36)}`;
@@ -51,7 +146,7 @@ export const aiPlannerEngine = {
           tableOrZone: 'VIP / Lead'
         }
       ],
-      notes: `Generated with CelebrAIte Engine. Focus: ${params.priorityFocus || 'balanced'}.`,
+      notes: `Generated with CelebrAIte Autonomous Engine. Priority Focus: ${params.priorityFocus || 'balanced'}.`,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };
@@ -105,7 +200,6 @@ export const aiPlannerEngine = {
         { category: 'Floral & Decor', name: 'Eco-Friendly Bunting, Seedling Tables & Plants', percentage: 0.07, notes: 'Reusable decor and native plant displays' }
       ];
     } else {
-      // General corporate / anniversary / gathering
       ratios = [
         { category: 'Venue & Rentals', name: 'Banquet Hall or Private Loft', percentage: 0.30, notes: 'Seating, podium, and AV projectors' },
         { category: 'Catering & Bar', name: 'Passed Canapés & Cocktail Service', percentage: 0.35, notes: `Catering service for ${params.targetGuests} attendees` },
@@ -142,7 +236,6 @@ export const aiPlannerEngine = {
    */
   generatePhasedTimeline(params: GenerateEventParams): TimelineItem[] {
     const isWedding = params.type === 'wedding';
-    const isBirthday = params.type === 'birthday';
     const isCommunity = params.type === 'community' || params.type === 'festival';
 
     const items: TimelineItem[] = [];
@@ -183,7 +276,7 @@ export const aiPlannerEngine = {
       id: 'tl-4',
       phase: 'bookings',
       title: 'Send Official Invitations & Launch RSVP Collection',
-      description: `Gather guest responses, track dietary preferences, and send reminder notes.`,
+      description: 'Gather guest responses, track dietary preferences, and send reminder notes.',
       targetDateOrTime: isWedding ? '8-10 Weeks Before' : '10 Days Before',
       completed: false,
       priority: 'medium'
@@ -321,15 +414,18 @@ export const aiPlannerEngine = {
   },
 
   /**
-   * Generates creative concepts, themes, palettes, speeches, and cost-saving tips
+   * Generates creative concepts, themes, palettes, speeches, and cost-saving tips,
+   * dynamically weaving in the user's specific vibe and atmosphere.
    */
   generateCreativeIdeas(params: GenerateEventParams): PersonalizedIdeas {
     const isWedding = params.type === 'wedding';
     const isBirthday = params.type === 'birthday';
     const isCommunity = params.type === 'community' || params.type === 'festival';
 
-    let themeName = 'Luminous Elegance';
-    let themeDescription = `An elevated, heartfelt gathering styled around "${params.vibe}" with seamless hospitality.`;
+    const userVibe = params.vibe || 'Warm, Celebratory & Memorable';
+
+    let themeName = `Luminous Harmony: ${userVibe.split(',')[0].trim()}`;
+    let themeDescription = `An elevated, heartfelt gathering styled around "${userVibe}" with seamless hospitality and tailored ambiance.`;
     let colorPalette = [
       { name: 'Midnight Navy', hex: '#0f172a' },
       { name: 'Warm Champagne', hex: '#fef08a' },
@@ -338,8 +434,8 @@ export const aiPlannerEngine = {
     ];
 
     if (isWedding) {
-      themeName = 'Timeless Botanical Romance';
-      themeDescription = 'An organic harmony of ethereal textures, ambient candlelight, heirloom wood, and botanical romance.';
+      themeName = `Botanical Romance: ${userVibe.split(',')[0].trim()}`;
+      themeDescription = `An organic harmony of ethereal textures, ambient candlelight, heirloom wood, and botanical romance celebrating "${userVibe}".`;
       colorPalette = [
         { name: 'Deep Evergreen', hex: '#14532d' },
         { name: 'Brushed Gold', hex: '#ca8a04' },
@@ -347,8 +443,8 @@ export const aiPlannerEngine = {
         { name: 'Dusty Mauve', hex: '#a855f7' }
       ];
     } else if (isBirthday) {
-      themeName = 'Electric Neon Horizon';
-      themeDescription = 'A vibrant, energetic festival of light, color, upbeat music, and interactive memories.';
+      themeName = `Dynamic Fiesta: ${userVibe.split(',')[0].trim()}`;
+      themeDescription = `A vibrant, high-energy festival of light, color, upbeat music, and interactive memories inspired by "${userVibe}".`;
       colorPalette = [
         { name: 'Neon Coral', hex: '#ff007f' },
         { name: 'Electric Cobalt', hex: '#2563eb' },
@@ -356,8 +452,8 @@ export const aiPlannerEngine = {
         { name: 'Charcoal Black', hex: '#18181b' }
       ];
     } else if (isCommunity) {
-      themeName = 'Neighbors United: Sustainable Together';
-      themeDescription = 'A civic celebration highlighting local talents, green practices, communal joy, and friendly unity.';
+      themeName = `United Neighbors: ${userVibe.split(',')[0].trim()}`;
+      themeDescription = `A civic celebration highlighting local talents, green practices, communal joy, and friendly unity themed around "${userVibe}".`;
       colorPalette = [
         { name: 'Earthy Terra Cotta', hex: '#c2410c' },
         { name: 'Meadow Green', hex: '#15803d' },
@@ -372,8 +468,8 @@ export const aiPlannerEngine = {
       colorPalette,
       activities: [
         {
-          name: isWedding ? 'Audio Guestbook Phone' : isBirthday ? 'Glow-in-the-Dark Escape Challenge' : 'Neighborhood Mural Live Art Station',
-          description: isWedding ? 'Guests pick up a vintage rotary telephone to record voice messages and funny marital advice.' : isBirthday ? 'Teams collaborate to solve riddles under blacklights within 20 minutes.' : 'Attendees and children paint a collective banner celebrating neighborhood history.',
+          name: isWedding ? 'Audio Guestbook Phone' : isBirthday ? 'Glow-in-the-Dark Quest' : 'Neighborhood Mural Live Art Station',
+          description: isWedding ? `Guests record heartfelt advice reflecting the "${userVibe}" celebration vibe.` : isBirthday ? `Teams collaborate to solve riddles in a fast-paced activity themed around "${userVibe}".` : `Attendees paint a collective banner celebrating neighborhood history in ${params.location}.`,
           targetAudience: 'All Guests',
           duration: 'Ongoing'
         },
@@ -385,12 +481,12 @@ export const aiPlannerEngine = {
         }
       ],
       cateringHighlights: [
-        'Seasonal locally sourced entrees with gluten-free and vegan accommodations',
-        'Signature custom-named cocktail and a zero-proof botanical mocktail',
+        `Seasonal culinary menu crafted for ${params.targetGuests} guests with inclusive vegan and gluten-free accommodations`,
+        `Signature Cocktail & Mocktail curated for a "${userVibe}" celebration`,
         'Interactive sweet treats dessert bar'
       ],
       playlistVibe: {
-        mood: `${params.vibe} curated music arc starting mellow and building to upbeat celebration`,
+        mood: `${userVibe} curated music arc starting mellow and building to energetic celebration`,
         sampleTracks: [
           'Warm Acoustic Welcome Covers',
           'Feel-Good Soul & Golden Age Motown',
@@ -401,12 +497,12 @@ export const aiPlannerEngine = {
         {
           title: 'Opening Welcome Speech',
           role: 'Lead Host',
-          text: `Welcome everyone to ${params.title}! Looking out and seeing so many cherished faces gathered here in ${params.location} means the world to us. Today is all about creating memories that outlast this evening. Please enjoy the food, laughter, and camaraderie!`
+          text: `Welcome everyone to ${params.title}! Looking out and seeing so many cherished faces gathered here in ${params.location} means the world to us. Today is all about celebrating "${userVibe}" and creating memories that outlast this evening. Please enjoy the food, laughter, and camaraderie!`
         }
       ],
       decorSuggestions: [
         'Cluster varied heights of warm LED pillar candles for maximum aesthetic romance and safety.',
-        'Use custom wooden or acrylic signage at entrance and food stations.'
+        `Use custom signage reflecting the "${userVibe}" aesthetic at entrance and food stations.`
       ],
       costSavingTips: [
         'Select in-season local produce and seasonal flowers to cut vendor transport fees by up to 30%.',
@@ -424,7 +520,7 @@ export const aiPlannerEngine = {
     currentEvent: EventPlan,
     aiSettings: AISettings
   ): Promise<{ text: string; suggestions?: string[] }> {
-    // If user provided a Gemini API Key and didn't force offline mode, attempt live Gemini call
+    // If user provided a Gemini API Key, attempt secure live Gemini call
     if (aiSettings.apiKey && aiSettings.apiKey.trim() !== '') {
       try {
         const liveResponse = await this.callGeminiAPI(prompt, currentEvent, aiSettings);
@@ -432,7 +528,11 @@ export const aiPlannerEngine = {
           return liveResponse;
         }
       } catch (err) {
-        console.warn('Gemini API call failed, falling back to autonomous offline engine', err);
+        console.warn('Gemini API call failed, evaluating fallback behavior', err);
+        // Honor useOfflineFallback configuration
+        if (aiSettings.useOfflineFallback === false) {
+          throw new Error('Gemini API connection error. Offline fallback is disabled in settings.');
+        }
       }
     }
 
@@ -441,15 +541,18 @@ export const aiPlannerEngine = {
   },
 
   /**
-   * Calls Google Gemini REST endpoint directly with security best practices
+   * Calls Google Gemini REST endpoint securely with Header-based authentication and model allowlisting
    */
   async callGeminiAPI(
     prompt: string,
     currentEvent: EventPlan,
     aiSettings: AISettings
   ): Promise<{ text: string; suggestions?: string[] } | null> {
-    const model = aiSettings.model || 'gemini-1.5-flash';
-    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(aiSettings.apiKey.trim())}`;
+    const rawModel = aiSettings.model || 'gemini-1.5-flash';
+    const model = ALLOWED_MODELS.includes(rawModel) ? rawModel : 'gemini-1.5-flash';
+    
+    // Security Fix: API key is passed securely via 'x-goog-api-key' header, never exposed in URL query parameters!
+    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
 
     const contextSummary = `
 You are CelebrAIte, an expert, encouraging, detail-oriented Event Planning Assistant.
@@ -484,7 +587,10 @@ Provide specific, practical, highly creative, and mathematically sound suggestio
 
     const res = await fetch(endpoint, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'x-goog-api-key': aiSettings.apiKey.trim()
+      },
       body: JSON.stringify(body)
     });
 
@@ -521,6 +627,7 @@ Provide specific, practical, highly creative, and mathematically sound suggestio
   ): { text: string; suggestions?: string[] } {
     const q = prompt.toLowerCase();
     const currency = currentEvent.currencySymbol;
+    const totalBudgetSafe = currentEvent.totalBudget || 1;
     const spent = currentEvent.budgetItems.reduce((acc, b) => acc + (b.actualCost || b.estimatedCost), 0);
     const balance = currentEvent.totalBudget - spent;
     const daysLeft = this.calculateDaysRemaining(currentEvent.date);
@@ -531,7 +638,7 @@ Provide specific, practical, highly creative, and mathematically sound suggestio
         text: `### 💡 Budget Optimization Report for ${currentEvent.title}
 **Financial Snapshot:**
 - **Total Budget:** ${currency}${currentEvent.totalBudget.toLocaleString()}
-- **Allocated / Committed:** ${currency}${spent.toLocaleString()} (${Math.round((spent / currentEvent.totalBudget) * 100)}%)
+- **Allocated / Committed:** ${currency}${spent.toLocaleString()} (${Math.round((spent / totalBudgetSafe) * 100)}%)
 - **Remaining Buffer:** ${currency}${balance.toLocaleString()}
 
 **Smart Strategic Trimming Recommendations:**

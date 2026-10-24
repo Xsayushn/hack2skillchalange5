@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { EventPlan, TimelineItem, TimelinePhase } from '../types';
 import { exportService } from '../services/exportService';
+import { useModalA11y } from '../hooks/useModalA11y';
 
 interface TimelineTabProps {
   event: EventPlan;
@@ -29,6 +30,7 @@ export const TimelineTab: React.FC<TimelineTabProps> = ({
 }) => {
   const [selectedPhase, setSelectedPhase] = useState<string>('all');
   const [showAddModal, setShowAddModal] = useState<boolean>(false);
+  const addModalRef = useModalA11y<HTMLDivElement>({ isOpen: showAddModal, onClose: () => setShowAddModal(false) });
 
   // Form state
   const [newTitle, setNewTitle] = useState('');
@@ -237,7 +239,7 @@ export const TimelineTab: React.FC<TimelineTabProps> = ({
       {/* Add Milestone Modal */}
       {showAddModal && (
         <div className="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="add-milestone-title">
-          <div className="modal-content glass-panel">
+          <div className="modal-content glass-panel" ref={addModalRef} tabIndex={-1}>
             <div className="modal-header">
               <h3 id="add-milestone-title">Schedule New Milestone</h3>
               <button 

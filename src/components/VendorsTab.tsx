@@ -14,6 +14,7 @@ import {
   ShieldCheck
 } from 'lucide-react';
 import { EventPlan, Vendor, BudgetCategory, VendorStatus } from '../types';
+import { useModalA11y } from '../hooks/useModalA11y';
 
 interface VendorsTabProps {
   event: EventPlan;
@@ -41,6 +42,7 @@ export const VendorsTab: React.FC<VendorsTabProps> = ({
 }) => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [activeCategoryFilter, setActiveCategoryFilter] = useState('all');
+  const addModalRef = useModalA11y<HTMLDivElement>({ isOpen: showAddModal, onClose: () => setShowAddModal(false) });
 
   // Form State
   const [name, setName] = useState('');
@@ -281,7 +283,7 @@ export const VendorsTab: React.FC<VendorsTabProps> = ({
       {/* Add Vendor Modal */}
       {showAddModal && (
         <div className="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="add-vendor-title">
-          <div className="modal-content glass-panel">
+          <div className="modal-content glass-panel" ref={addModalRef} tabIndex={-1}>
             <div className="modal-header">
               <h3 id="add-vendor-title">Add Vendor or Service Partner</h3>
               <button 

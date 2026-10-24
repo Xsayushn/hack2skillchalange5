@@ -237,6 +237,7 @@ export const App: React.FC = () => {
         isOpen={isWizardOpen}
         onClose={() => setIsWizardOpen(false)}
         onEventCreated={handleEventCreated}
+        aiSettings={aiSettings}
       />
 
       <AssistantDrawer 

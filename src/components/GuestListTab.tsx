@@ -12,6 +12,7 @@ import {
   Filter
 } from 'lucide-react';
 import { EventPlan, Guest, RsvpStatus } from '../types';
+import { useModalA11y } from '../hooks/useModalA11y';
 
 interface GuestListTabProps {
   event: EventPlan;
@@ -26,6 +27,7 @@ export const GuestListTab: React.FC<GuestListTabProps> = ({
 }) => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [filterRsvp, setFilterRsvp] = useState<string>('all');
+  const addModalRef = useModalA11y<HTMLDivElement>({ isOpen: showAddModal, onClose: () => setShowAddModal(false) });
 
   // Form State
   const [name, setName] = useState('');
@@ -261,7 +263,7 @@ export const GuestListTab: React.FC<GuestListTabProps> = ({
       {/* Add Guest Modal */}
       {showAddModal && (
         <div className="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="add-guest-title">
-          <div className="modal-content glass-panel">
+          <div className="modal-content glass-panel" ref={addModalRef} tabIndex={-1}>
             <div className="modal-header">
               <h3 id="add-guest-title">Add Guest to Invitation List</h3>
               <button 
