@@ -51,4 +51,14 @@ describe('exportService - Calendar & Document Generation', () => {
     const escaped = exportService.escapeIcs('Hello; World, How are you?\nNext line');
     expect(escaped).toBe('Hello\\; World\\, How are you?\\nNext line');
   });
+
+  it('calculates non-zero-day duration for all-day milestones (DTEND = DTSTART + 1 day)', () => {
+    const milestoneItem = event.timelineItems.find(i => i.phase !== 'day_of') || event.timelineItems[0];
+    const timing = exportService.resolveTimelineTiming(milestoneItem, new Date('2026-10-24T00:00:00Z'));
+    
+    expect(timing.dtstart).toContain('DTSTART;VALUE=DATE:');
+    expect(timing.dtend).toContain('DTEND;VALUE=DATE:');
+    // Ensure start and end date are not identical (RFC 5545 non-inclusive end date requirement)
+    expect(timing.dtstart).not.toBe(timing.dtend);
+  });
 });

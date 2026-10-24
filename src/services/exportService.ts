@@ -102,10 +102,16 @@ export const exportService = {
     const milestoneDate = new Date(eventDate);
     milestoneDate.setDate(milestoneDate.getDate() - offsetDays);
 
-    const cleanDate = this.formatDateOnly(milestoneDate);
+    // RFC 5545 requirement: For all-day events, DTEND is non-inclusive (exclusive)
+    // To ensure a full 1-day milestone event, DTEND must be the following calendar day
+    const milestoneEndDate = new Date(milestoneDate);
+    milestoneEndDate.setDate(milestoneEndDate.getDate() + 1);
+
+    const startClean = this.formatDateOnly(milestoneDate);
+    const endClean = this.formatDateOnly(milestoneEndDate);
     return {
-      dtstart: `DTSTART;VALUE=DATE:${cleanDate}`,
-      dtend: `DTEND;VALUE=DATE:${cleanDate}`
+      dtstart: `DTSTART;VALUE=DATE:${startClean}`,
+      dtend: `DTEND;VALUE=DATE:${endClean}`
     };
   },
 

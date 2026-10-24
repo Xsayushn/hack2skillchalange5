@@ -1,6 +1,7 @@
 # CelebrAIte | GenAI Celebration & Event Planner 💍🎂🌳
 
-[![Tests](https://img.shields.io/badge/Vitest-22%20Passed%20(Unit%20%2B%20UI)-emerald.svg)](#-rigorous-automated-test-suite-22-tests)
+[![Tests](https://img.shields.io/badge/Vitest-24%20Passed%20(Unit%20%2B%20UI)-emerald.svg)](#-rigorous-automated-test-suite-24-tests)
+[![CI](https://github.com/Xsayushn/hack2skillchalange5/actions/workflows/ci.yml/badge.svg)](https://github.com/Xsayushn/hack2skillchalange5/actions)
 [![TypeScript](https://img.shields.io/badge/TypeScript-Strict%20ES2020-blue.svg)](tsconfig.json)
 [![Security](https://img.shields.io/badge/Security-Header%20Auth%20%7C%20Session%20Storage-brightgreen.svg)](#-enterprise-grade-security-architecture)
 [![npm audit](https://img.shields.io/badge/npm%20audit-0%20vulnerabilities-brightgreen.svg)](package.json)
@@ -161,17 +162,19 @@ CelebrAIte features **22 automated tests** across 4 test suites covering both se
    - Creative moodboard generation with custom themes
    - AI Copilot intent parser (budget, timeline, vendor queries)
    - Zero-budget mathematical edge cases
- ✓ src/test/exportService.test.ts (3 tests)
+ ✓ src/test/exportService.test.ts (4 tests)
    - RFC 5545 iCalendar (.ics) syntax & milestone date calculation
    - Special character escaping in calendar fields
    - Comprehensive Markdown dossier compilation
- ✓ src/test/components.test.tsx (7 UI Component Tests)
+   - Non-zero-day milestone duration validation (exclusive DTEND offset)
+ ✓ src/test/components.test.tsx (8 UI Component Tests)
    - EventHeader metadata rendering & tab navigation
    - BudgetTab ledger rendering, adding line items & safe zero-budget division
    - TimelineTab phased milestones & day-of run of show
    - IdeasMoodboardTab color palette & speech generator
    - GuestListTab RSVP counters & dietary alert banner
    - SettingsModal Escape key closing & focus trap
+   - useModalA11y focus preservation while typing (no focus stealing)
 ```
 
 ### Running Tests:

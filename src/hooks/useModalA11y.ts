@@ -11,21 +11,26 @@ export function useModalA11y<T extends HTMLElement = HTMLDivElement>({
 }: UseModalA11yOptions) {
   const containerRef = useRef<T | null>(null);
   const previousActiveElement = useRef<HTMLElement | null>(null);
+  const onCloseRef = useRef(onClose);
+
+  // Keep onCloseRef current on every render without triggering re-initialization
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  });
 
   useEffect(() => {
     if (!isOpen) return;
 
-    // Remember previous active element to restore focus on close
+    // Capture element that had focus before modal opened
     previousActiveElement.current = document.activeElement as HTMLElement;
 
     const container = containerRef.current;
     if (container) {
-      // Find all focusable elements
+      // Focus the first focusable element only if focus is not already inside container
       const focusableElements = container.querySelectorAll<HTMLElement>(
-        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
       );
-      if (focusableElements.length > 0) {
-        // Auto-focus first focusable element
+      if (focusableElements.length > 0 && !container.contains(document.activeElement)) {
         focusableElements[0].focus();
       }
     }
@@ -34,14 +39,14 @@ export function useModalA11y<T extends HTMLElement = HTMLDivElement>({
       // 1. Escape to close
       if (e.key === 'Escape') {
         e.preventDefault();
-        onClose();
+        onCloseRef.current();
         return;
       }
 
       // 2. Focus trap
-      if (e.key === 'Tab' && container) {
+      if (e.key === 'Tab' && containerRef.current) {
         const focusables = Array.from(
-          container.querySelectorAll<HTMLElement>(
+          containerRef.current.querySelectorAll<HTMLElement>(
             'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
           )
         );
@@ -71,12 +76,12 @@ export function useModalA11y<T extends HTMLElement = HTMLDivElement>({
 
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
-      // Restore focus
+      // Restore focus to previous element when modal unmounts/closes
       if (previousActiveElement.current && typeof previousActiveElement.current.focus === 'function') {
         previousActiveElement.current.focus();
       }
     };
-  }, [isOpen, onClose]);
+  }, [isOpen]); // strictly depends on isOpen only
 
   return containerRef;
 }

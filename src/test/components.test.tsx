@@ -174,4 +174,30 @@ describe('UI Component Integration Tests', () => {
     fireEvent.keyDown(window, { key: 'Escape', code: 'Escape' });
     expect(handleClose).toHaveBeenCalled();
   });
+
+  it('useModalA11y preserves focus while typing into form fields (no focus stealing)', () => {
+    const handleClose = vi.fn();
+    const handleSave = vi.fn();
+
+    render(
+      <SettingsModal 
+        isOpen={true}
+        onClose={handleClose}
+        aiSettings={{ apiKey: '', model: 'gemini-2.0-flash', useOfflineFallback: true }}
+        onSaveAISettings={handleSave}
+        onResetData={vi.fn()}
+        onImportData={vi.fn()}
+      />
+    );
+
+    const input = screen.getByLabelText(/Gemini API Key/i);
+    input.focus();
+    expect(document.activeElement).toBe(input);
+
+    // Type into input field
+    fireEvent.change(input, { target: { value: 'AIzaSyTestKey123' } });
+
+    // Focus must stay on input and NOT jump to close button
+    expect(document.activeElement).toBe(input);
+  });
 });

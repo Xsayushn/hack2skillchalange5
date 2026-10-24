@@ -14,35 +14,68 @@ export interface GenerateEventParams {
   dietaryOrSpecialNotes?: string;
 }
 
-const ALLOWED_MODELS = ['gemini-1.5-flash', 'gemini-2.0-flash-exp', 'gemini-1.5-pro', 'gemini-1.0-pro'];
+export const ALLOWED_MODELS = [
+  'gemini-2.0-flash',
+  'gemini-2.5-flash',
+  'gemini-1.5-flash',
+  'gemini-1.5-pro',
+  'gemini-2.0-flash-exp',
+  'gemini-2.0-pro-exp-02-05'
+];
+
+export interface PlanGenerationResult {
+  plan: EventPlan;
+  source: 'live-gemini' | 'autonomous-heuristics';
+  errorNotice?: string;
+}
 
 export const aiPlannerEngine = {
+  /**
+   * Generates a complete tailored EventPlan with source metadata.
+   */
+  async generateEventPlanWithMeta(params: GenerateEventParams, aiSettings?: AISettings): Promise<PlanGenerationResult> {
+    if (aiSettings?.apiKey && aiSettings.apiKey.trim().length > 5) {
+      try {
+        const livePlan = await this.callGeminiForPlan(params, aiSettings);
+        if (livePlan) {
+          return { plan: livePlan, source: 'live-gemini' };
+        }
+      } catch (err: unknown) {
+        const errMsg = err instanceof Error ? err.message : String(err);
+        console.warn('Live Gemini plan generation failed, falling back to autonomous engine', err);
+        if (aiSettings?.useOfflineFallback === false) {
+          throw err;
+        }
+        const offlinePlan = this.generateEventPlan(params);
+        return {
+          plan: offlinePlan,
+          source: 'autonomous-heuristics',
+          errorNotice: `Live Gemini API call failed (${errMsg.slice(0, 100)}). Safely fell back to Autonomous Heuristic Engine.`
+        };
+      }
+    }
+    return {
+      plan: this.generateEventPlan(params),
+      source: 'autonomous-heuristics'
+    };
+  },
+
   /**
    * Generates a complete tailored EventPlan.
    * If an active Gemini API key is configured, it dynamically invokes the Gemini model to synthesize
    * bespoke event elements; otherwise, it seamlessly uses the Autonomous Context-Aware Heuristics engine.
    */
   async generateEventPlanAsync(params: GenerateEventParams, aiSettings?: AISettings): Promise<EventPlan> {
-    if (aiSettings?.apiKey && aiSettings.apiKey.trim().length > 5) {
-      try {
-        const livePlan = await this.callGeminiForPlan(params, aiSettings);
-        if (livePlan) return livePlan;
-      } catch (err) {
-        console.warn('Live Gemini plan generation failed, falling back to autonomous engine', err);
-        if (aiSettings?.useOfflineFallback === false) {
-          throw err;
-        }
-      }
-    }
-    return this.generateEventPlan(params);
+    const result = await this.generateEventPlanWithMeta(params, aiSettings);
+    return result.plan;
   },
 
   /**
    * Calls Google Gemini to generate a truly dynamic, context-tailored event plan
    */
   async callGeminiForPlan(params: GenerateEventParams, aiSettings: AISettings): Promise<EventPlan | null> {
-    const rawModel = aiSettings.model || 'gemini-1.5-flash';
-    const model = ALLOWED_MODELS.includes(rawModel) ? rawModel : 'gemini-1.5-flash';
+    const rawModel = aiSettings.model || 'gemini-2.0-flash';
+    const model = ALLOWED_MODELS.includes(rawModel) ? rawModel : 'gemini-2.0-flash';
     const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
 
     const systemPrompt = `You are CelebrAIte, an expert AI Event Planner.

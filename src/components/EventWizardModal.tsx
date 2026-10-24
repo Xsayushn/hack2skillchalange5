@@ -5,7 +5,8 @@ import {
   ArrowLeft, 
   CheckCircle2, 
   X,
-  Bot
+  Bot,
+  AlertCircle
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { EventPlan, EventType, AISettings } from '../types';
@@ -94,6 +95,7 @@ export const EventWizardModal: React.FC<EventWizardModalProps> = ({
   const [currency, setCurrency] = useState<string>('USD');
   const [currencySymbol, setCurrencySymbol] = useState<string>('$');
   const [priorityFocus, setPriorityFocus] = useState<'balanced' | 'catering' | 'entertainment' | 'decor' | 'photo'>('balanced');
+  const [generationNotice, setGenerationNotice] = useState<string | null>(null);
 
   // Accessibility: Focus trap & Escape-to-close
   const modalRef = useModalA11y<HTMLDivElement>({ isOpen, onClose });
@@ -119,6 +121,7 @@ export const EventWizardModal: React.FC<EventWizardModalProps> = ({
 
   const handleGenerate = async () => {
     setIsGenerating(true);
+    setGenerationNotice(null);
 
     const params: GenerateEventParams = {
       title: title || `${eventType.toUpperCase()} Celebration`,
@@ -134,7 +137,11 @@ export const EventWizardModal: React.FC<EventWizardModalProps> = ({
     };
 
     try {
-      const newPlan = await aiPlannerEngine.generateEventPlanAsync(params, aiSettings);
+      const result = await aiPlannerEngine.generateEventPlanWithMeta(params, aiSettings);
+
+      if (result.errorNotice) {
+        setGenerationNotice(result.errorNotice);
+      }
 
       // Trigger Confetti effect (safely handles prefers-reduced-motion)
       const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -150,10 +157,10 @@ export const EventWizardModal: React.FC<EventWizardModalProps> = ({
         }
       }
 
-      onEventCreated(newPlan);
+      onEventCreated(result.plan);
       onClose();
       setStep(1);
-    } catch (err) {
+    } catch (err: unknown) {
       console.error('Plan generation failed', err);
       // Fallback to offline heuristic
       const fallbackPlan = aiPlannerEngine.generateEventPlan(params);
@@ -182,7 +189,7 @@ export const EventWizardModal: React.FC<EventWizardModalProps> = ({
                 <span className="wizard-sub">Step {step} of 3</span>
                 <span className="wizard-engine-badge">
                   <Bot size={13} className={hasLiveKey ? 'text-brand' : 'text-emerald'} />
-                  <span>{hasLiveKey ? `Live Gemini (${aiSettings?.model})` : 'Autonomous AI Heuristic (Offline Ready)'}</span>
+                  <span>{hasLiveKey ? `Live Gemini (${aiSettings?.model || 'gemini-2.0-flash'})` : 'Autonomous AI Heuristic (Offline Ready)'}</span>
                 </span>
               </div>
             </div>
@@ -196,8 +203,14 @@ export const EventWizardModal: React.FC<EventWizardModalProps> = ({
           </button>
         </div>
 
-        {/* Wizard Steps */}
+        {/* Wizard Body */}
         <div className="wizard-body">
+          {generationNotice && (
+            <div className="alert-banner warning" style={{ margin: '0 0 16px 0', padding: '10px 14px', borderRadius: '8px', background: 'rgba(234, 179, 8, 0.15)', border: '1px solid rgba(234, 179, 8, 0.4)', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem' }}>
+              <AlertCircle size={16} className="text-yellow" />
+              <span>{generationNotice}</span>
+            </div>
+          )}
           {/* STEP 1: Select Archetype */}
           {step === 1 && (
             <div className="wizard-step-container">

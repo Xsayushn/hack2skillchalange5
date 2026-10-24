@@ -15,6 +15,7 @@ import {
 import { AISettings, EventPlan } from '../types';
 import { storageService } from '../services/storageService';
 import { useModalA11y } from '../hooks/useModalA11y';
+import { ALLOWED_MODELS } from '../services/aiPlannerEngine';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -25,8 +26,6 @@ interface SettingsModalProps {
   onImportData: (importedEvents: EventPlan[]) => void;
 }
 
-const ALLOWED_MODELS = ['gemini-1.5-flash', 'gemini-2.0-flash-exp', 'gemini-1.5-pro', 'gemini-1.0-pro'];
-
 export const SettingsModal: React.FC<SettingsModalProps> = ({
   isOpen,
   onClose,
@@ -36,7 +35,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   onImportData
 }) => {
   const [apiKey, setApiKey] = useState(aiSettings.apiKey || '');
-  const [model, setModel] = useState(aiSettings.model || 'gemini-1.5-flash');
+  const [model, setModel] = useState(aiSettings.model || 'gemini-2.0-flash');
   const [useOfflineFallback, setUseOfflineFallback] = useState(aiSettings.useOfflineFallback !== false);
   const [showKey, setShowKey] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
@@ -183,9 +182,11 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   value={model} 
                   onChange={(e) => setModel(e.target.value)}
                 >
-                  <option value="gemini-1.5-flash">gemini-1.5-flash (Fast & Responsive)</option>
-                  <option value="gemini-2.0-flash-exp">gemini-2.0-flash-exp (Experimental High-Precision)</option>
+                  <option value="gemini-2.0-flash">gemini-2.0-flash (Recommended · Fast & Modern)</option>
+                  <option value="gemini-2.5-flash">gemini-2.5-flash (Next-Gen High Speed)</option>
+                  <option value="gemini-1.5-flash">gemini-1.5-flash (Standard Multimodal)</option>
                   <option value="gemini-1.5-pro">gemini-1.5-pro (In-depth Reasoning)</option>
+                  <option value="gemini-2.0-flash-exp">gemini-2.0-flash-exp (Experimental)</option>
                 </select>
               </div>
 

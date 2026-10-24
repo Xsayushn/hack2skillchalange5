@@ -59,10 +59,8 @@ export const storageService = {
     let key = '';
     try {
       key = sessionStorage.getItem(SESSION_KEYS.API_KEY) || '';
-      // Backward-compatible fallback check
-      if (!key) {
-        key = localStorage.getItem('celebr_ai_te_api_key_legacy') || '';
-      }
+      // Actively purge any legacy localStorage key to ensure complete storage isolation
+      localStorage.removeItem('celebr_ai_te_api_key_legacy');
     } catch {
       // sessionStorage restricted fallback
     }
